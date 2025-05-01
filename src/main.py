@@ -13,12 +13,14 @@ pygame.display.set_caption('Buttons!')
 
 Menubackground = pygame.image.load('assets/Menu1.jpg')
 Creditbackground = pygame.image.load('assets/auth1.jpg')
+Name = pygame.image.load('assets/Name.png')
 
 snow = [[random.randrange(0, WIDTH), random.randrange(0, HEIGHT)] for _ in range(50)]
 
 fps = 60
 timer = pygame.time.Clock()
 font = pygame.font.Font('freesansbold.ttf', 18)
+big_font = pygame.font.Font('freesansbold.ttf', 30)
 
 class Button:
     def __init__(self, text, x_pos, y_pos, enabled=True):
@@ -37,9 +39,9 @@ class Button:
         color = 'gray'
         if self.enabled:
             if is_pressed:
-                color = 'dark gray'
+                color = 'darkgray'
             elif is_hover:
-                color = 'light gray'
+                color = 'lightgray'
 
         pygame.draw.rect(screen, color, self.rect, 0, 5)
         pygame.draw.rect(screen, 'black', self.rect, 2, 5)
@@ -50,28 +52,37 @@ class Button:
     def check_click(self, new_press):
         mouse_pos = pygame.mouse.get_pos()
         left_click = pygame.mouse.get_pressed()[0]
-        if left_click and self.rect.collidepoint(mouse_pos) and self.enabled and new_press:
-            return True
-        return False
+        return left_click and self.rect.collidepoint(mouse_pos) and self.enabled and new_press
+
+def draw_volume_slider(volume):
+    pygame.draw.rect(screen, 'lightgrey', (400, 350, 400, 10))  
+    pygame.draw.circle(screen, 'black', (int(400 + volume * 400), 355), 15)  
+    volume_text = big_font.render(f'Громкость: {int(volume * 100)}%', True, 'black')
+    pygame.draw.rect(screen, 'lightgrey', (140, 330, 250, 50)) 
+    screen.blit(volume_text, (150, 345))
+    
 
 current_screen = "main"
 run = True
 new_press = True
+volume = 0.5
+pygame.mixer.music.set_volume(volume)
 
 my_button1 = Button('Об авторах', 100, 400)
 my_button2 = Button('Начать игру', 100, 300)
-my_button3 = Button('Настройки', 100, 500)
-my_button4 = Button('Выход', 100, 600)
-back_button = Button('Назад', 65, 650)
+my_button3 = Button(' Настройки', 100, 500)
+my_button4 = Button('   Выход', 100, 600)
+back_button = Button('    Назад', 65, 650)
 
 while run:
-    screen.fill((0, 0, 0))  
+    screen.fill((0, 0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
 
     if current_screen == "main":
         screen.blit(Menubackground, (0, 0))
+        screen.blit(Name, (190, -10))
 
         for ice in range(len(snow)):
             pygame.draw.circle(screen, 'white', snow[ice], 2)
@@ -87,6 +98,9 @@ while run:
 
         if my_button1.check_click(new_press):
             current_screen = "about"
+            new_press = False
+        elif my_button3.check_click(new_press):
+            current_screen = "settings"
             new_press = False
         elif my_button4.check_click(new_press):
             run = False
@@ -105,6 +119,28 @@ while run:
             current_screen = "main"
             new_press = False
 
+    elif current_screen == "settings":
+        screen.blit(Menubackground, (0, 0))
+        screen.blit(Name, (190, -10))
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mx, my = pygame.mouse.get_pos()
+            if 400 <= mx <= 800 and 340 <= my <= 360:
+                volume = (mx - 400) / 400
+                pygame.mixer.music.set_volume(volume)
+
+        for ice in range(len(snow)):
+            pygame.draw.circle(screen, 'white', snow[ice], 2)
+            snow[ice][1] += 1
+            if snow[ice][1] > HEIGHT:
+                snow[ice][1] = random.randrange(-50, -10)
+                snow[ice][0] = random.randrange(0, WIDTH)    
+        draw_volume_slider(volume)
+        back_button.draw()          
+        if back_button.check_click(new_press):
+            current_screen = "main"
+            new_press = False
+
     if not pygame.mouse.get_pressed()[0]:
         new_press = True
 
@@ -112,3 +148,4 @@ while run:
     timer.tick(fps)
 
 pygame.quit()
+  
