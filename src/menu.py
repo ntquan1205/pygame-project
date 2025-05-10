@@ -29,7 +29,7 @@ class Button:
                 if self.rect.collidepoint(event.pos):
                     return True
         return False
-
+    
 class MenuManager:
     def __init__(self, game):
         self.game = game
@@ -54,6 +54,27 @@ class MenuManager:
                 snowflake[1] = random.randrange(-50, -10)  
                 snowflake[0] = random.randrange(0, self.game.WIDTH)
 
+    def fade_menu(self):
+        fade_surface = pygame.Surface((self.game.WIDTH, self.game.HEIGHT))
+        fade_surface.fill((0, 0, 0))
+        for alpha in range(0, 255, 5):
+            fade_surface.set_alpha(alpha)
+            self.game.screen.blit(self.bg_main, (0, 0))  
+            self.game.screen.blit(fade_surface, (0, 0))
+            pygame.display.flip()
+            self.game.clock.tick(self.game.fps)
+
+    def fade_waitingforstart(self):
+        fade_surface = pygame.Surface((self.game.WIDTH, self.game.HEIGHT))
+        fade_surface.fill((0, 0, 0))
+        for alpha in range(255, 0, -5):
+            fade_surface.set_alpha(alpha)
+            self.game.screen.fill((0, 0, 255)) 
+            start_text = self.game.font.render("Нажмите Enter, чтобы начать игру", True, 'white')
+            self.game.screen.blit(start_text, (self.game.WIDTH // 2 - start_text.get_width() // 2, self.game.HEIGHT // 2 - start_text.get_height() // 2)) 
+            self.game.screen.blit(fade_surface, (0, 0))
+            pygame.display.flip()
+            self.game.clock.tick(self.game.fps)
 
     def update(self):
         events = pygame.event.get()
@@ -62,11 +83,11 @@ class MenuManager:
                 self.game.running = False
 
         self.game.screen.fill((0, 0, 0))
-        self.update_snow()
 
         if self.state == "main":
             self.game.screen.blit(self.bg_main, (0, 0))
             self.game.screen.blit(self.title_img, (190, -10))
+            self.update_snow()
             self.btn_about.draw()
             self.btn_start.draw()
             self.btn_settings.draw()
@@ -78,16 +99,22 @@ class MenuManager:
                 self.state = "settings"
             elif self.btn_exit.check_click(events):
                 self.game.running = False
+            elif self.btn_start.check_click(events):
+                self.fade_menu()
+                self.fade_waitingforstart()
+                self.state = "waiting_for_start"
 
         elif self.state == "about":
             self.game.screen.blit(self.bg_credits, (0, 0))
             self.btn_back.draw()
+            self.update_snow()
             if self.btn_back.check_click(events):
                 self.state = "main"
 
         elif self.state == "settings":
             self.game.screen.blit(self.bg_main, (0, 0))
             self.game.screen.blit(self.title_img, (190, -10))
+            self.update_snow()
             self.draw_volume_slider()
             self.btn_back.draw()
 
@@ -100,6 +127,22 @@ class MenuManager:
 
             if self.btn_back.check_click(events):
                 self.state = "main"
+
+        elif self.state == "waiting_for_start":
+            self.game.screen.fill((0, 0, 255)) 
+            start_text = self.game.font.render("Нажмите Enter, чтобы начать игру", True, 'white')
+            self.game.screen.blit(start_text, (self.game.WIDTH // 2 - start_text.get_width() // 2, self.game.HEIGHT // 2 - start_text.get_height() // 2))
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RETURN]:
+                self.fade_waitingforstart()  
+                self.state = "game"  
+
+
+        elif self.state == "game":
+            self.game.screen.blit(self.bg_main, (0, 0)) 
+            
+    
 
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
