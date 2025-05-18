@@ -9,6 +9,13 @@ class Hero:
         self.x = x
         self.y = y
     
-    def move(self, x, y, speed):
-        x += speed
-        y += speed
+    def move(self, speed):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            self.y += speed
+        if keys[pygame.K_a]:
+            self.x -= speed
+        if keys[pygame.K_s]:
+            self.y -= speed
+        if keys[pygame.K_d]:
+           self.x += speed
