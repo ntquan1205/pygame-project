@@ -36,9 +36,9 @@ class MenuManager:
         self.state = "main"
         self.volume = 0.5
 
-        self.bg_main = pygame.image.load('assets/Menu1.jpg')
-        self.bg_credits = pygame.image.load('assets/auth1.jpg')
-        self.title_img = pygame.image.load('assets/Name.png')
+        self.bg_main = pygame.image.load('assets/Menu/Menu1.jpg')
+        self.bg_credits = pygame.image.load('assets/Menu/auth1.jpg')
+        self.title_img = pygame.image.load('assets/Menu/Name.png')
 
         self.btn_about = Button('Об авторах', 100, 400, game)
         self.btn_start = Button('Начать игру', 100, 300, game)
