@@ -1,6 +1,7 @@
 import pygame
 import random
 from menu import MenuManager
+from hero import Hero
 
 class Game:
     def __init__(self):
@@ -28,3 +29,6 @@ class Game:
             self.clock.tick(self.fps)
             self.menu.update()
             pygame.display.flip()
+            #hero = Hero(self.screen)
+            #hero.output()
+            

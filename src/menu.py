@@ -1,6 +1,8 @@
 import pygame
 import random
 
+from hero import Hero
+
 class Button:
     def __init__(self, text, x_pos, y_pos, game):
         self.text = text
@@ -133,10 +135,13 @@ class MenuManager:
             start_text = self.game.font.render("Нажмите Enter, чтобы начать игру", True, 'white')
             self.game.screen.blit(start_text, (self.game.WIDTH // 2 - start_text.get_width() // 2, self.game.HEIGHT // 2 - start_text.get_height() // 2))
 
+            #hero = Hero(self.bg_main)
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
                 self.fade_waitingforstart()  
-                self.state = "game"  
+                self.state = "game"
+                #hero.output()
+                #hero.move()
 
 
         elif self.state == "game":
