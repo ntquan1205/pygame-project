@@ -1,6 +1,5 @@
 import pygame
 import random
-
 from hero import Hero
 
 class Button:
@@ -47,6 +46,8 @@ class MenuManager:
         self.btn_settings = Button(' Настройки', 100, 500, game)
         self.btn_exit = Button('   Выход', 100, 600, game)
         self.btn_back = Button('    Назад', 65, 650, game)
+
+        self.hero = None
 
     def update_snow(self):
         for snowflake in self.game.snow:
@@ -135,17 +136,17 @@ class MenuManager:
             start_text = self.game.font.render("Нажмите Enter, чтобы начать игру", True, 'white')
             self.game.screen.blit(start_text, (self.game.WIDTH // 2 - start_text.get_width() // 2, self.game.HEIGHT // 2 - start_text.get_height() // 2))
 
-            #hero = Hero(self.bg_main)
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
-                self.fade_waitingforstart()  
+                self.hero = Hero(self.game.screen) 
                 self.state = "game"
-                #hero.output()
-                #hero.move()
 
 
         elif self.state == "game":
-            self.game.screen.blit(self.bg_main, (0, 0)) 
+            self.game.screen.fill((0, 100, 0))  
+            if self.hero:
+                self.hero.move()
+                self.hero.output()
             
     
 

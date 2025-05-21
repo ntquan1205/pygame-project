@@ -1,5 +1,5 @@
 import pygame
-from settings import PLAYER_START_X, PLAYER_START_Y, PLAYER_SPEED
+from settings import *
 
 class Hero:
 
@@ -8,7 +8,8 @@ class Hero:
         self.damage = damage
         self.speed = speed
         self.screen = screen
-        self.image = pygame.image.load("assets/Hero/Hero.png")
+        self.base_player_image = pygame.transform.rotozoom(pygame.image.load("assets/Hero/Hero.png").convert_alpha(), 0, PLAYER_SIZE)
+        self.image = pygame.transform.rotozoom(self.base_player_image, 0, PLAYER_SIZE)
         self.rect = self.image.get_rect()
         self.screen_rect = screen.get_rect()
         self.rect.x = x
@@ -22,10 +23,10 @@ class Hero:
     def move(self, speed = PLAYER_SPEED):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            self.rect.y += speed
+            self.rect.y -= speed
         if keys[pygame.K_a]:
             self.rect.x -= speed
         if keys[pygame.K_s]:
-            self.rect.y -= speed
+            self.rect.y += speed
         if keys[pygame.K_d]:
            self.rect.x += speed
