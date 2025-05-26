@@ -138,14 +138,14 @@ class MenuManager:
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
-                self.hero = Hero(self.game.screen) 
+                self.hero = Hero() 
                 self.state = "game"
 
 
         elif self.state == "game":
             self.game.screen.fill((0, 100, 0))  
             if self.hero:
-                self.hero.move()
+                self.hero.update()
                 self.hero.output()
             
     

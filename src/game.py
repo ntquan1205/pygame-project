@@ -2,6 +2,7 @@ import pygame
 import random
 from menu import MenuManager
 from hero import Hero
+from settings import *
 
 class Game:
     def __init__(self):
