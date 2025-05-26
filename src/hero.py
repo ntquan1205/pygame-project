@@ -25,8 +25,8 @@ class Hero(pygame.sprite.Sprite):
 
     def player_rotation(self):
         self.mouse_coords = pygame.mouse.get_pos()
-        self.x_change_mouse_player = (self.mouse_coords[0] - self.hitbox_rect.centerx)
-        self.y_change_mouse_player = (self.mouse_coords[1] - self.hitbox_rect.centery)
+        self.x_change_mouse_player = (self.mouse_coords[0] - WIDTH // 2)
+        self.y_change_mouse_player = (self.mouse_coords[1] - HEIGHT // 2)
         self.angle = math.degrees(math.atan2(self.y_change_mouse_player, self.x_change_mouse_player))
         self.image = pygame.transform.rotate(self.base_player_image, -self.angle)
         self.rect = self.image.get_rect(center=self.hitbox_rect.center)
@@ -66,5 +66,4 @@ class Hero(pygame.sprite.Sprite):
     def output(self):
         self.screen.blit(self.image, self.rect)
 
-    all_sprites_group = pygame.sprite.Group()
-        
+

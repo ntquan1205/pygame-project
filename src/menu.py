@@ -1,6 +1,29 @@
 import pygame
 import random
 from hero import Hero
+from settings import *
+
+bg_game = pygame.image.load("assets/InGame/ground.png").convert()
+all_sprites_group = pygame.sprite.Group()
+
+class Camera:
+    def __init__(self):
+        self.offset = pygame.math.Vector2()
+        self.floor_rect = bg_game.get_rect(topleft=(0, 0))
+
+    def custom_draw(self, hero, all_sprites_group, screen):
+        # Calculate offset so hero is centered on screen
+        self.offset.x = hero.rect.centerx - WIDTH // 2
+        self.offset.y = hero.rect.centery - HEIGHT // 2
+
+        # Draw the background with offset
+        floor_offset_pos = self.floor_rect.topleft - self.offset
+        screen.blit(bg_game, floor_offset_pos)
+
+        # Draw all sprites with offset
+        for sprite in all_sprites_group:
+            offset_pos = sprite.rect.topleft - self.offset
+            screen.blit(sprite.image, offset_pos)
 
 class Button:
     def __init__(self, text, x_pos, y_pos, game):
@@ -138,15 +161,16 @@ class MenuManager:
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
-                self.hero = Hero() 
+                self.hero = Hero()
+                all_sprites_group.add(self.hero)  # Add hero to sprite group
+                self.camera = Camera()            # Create camera instance
                 self.state = "game"
 
-
         elif self.state == "game":
-            self.game.screen.fill((0, 100, 0))  
+            self.game.screen.blit
             if self.hero:
                 self.hero.update()
-                self.hero.output()
+                self.camera.custom_draw(self.hero, all_sprites_group, self.game.screen)
             
     
 
