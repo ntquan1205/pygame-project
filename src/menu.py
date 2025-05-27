@@ -2,7 +2,8 @@ import pygame
 import random
 from hero import Hero
 from settings import *
-
+from gun import Gun
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bg_game = pygame.image.load("assets/InGame/ground.png").convert()
 all_sprites_group = pygame.sprite.Group()
 
@@ -162,6 +163,7 @@ class MenuManager:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
                 self.hero = Hero()
+                self.gun = Gun(self.hero)
                 all_sprites_group.add(self.hero)  # Add hero to sprite group
                 self.camera = Camera()            # Create camera instance
                 self.state = "game"
@@ -170,6 +172,8 @@ class MenuManager:
             self.game.screen.blit
             if self.hero:
                 self.hero.update()
+                self.gun.update()
+                self.gun.draw(screen)
                 self.camera.custom_draw(self.hero, all_sprites_group, self.game.screen)
             
     

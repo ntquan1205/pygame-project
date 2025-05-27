@@ -50,6 +50,9 @@ class Hero(pygame.sprite.Sprite):
             self.velocity_x /= math.sqrt(2)
             self.velocity_y /= math.sqrt(2)
 
+        if keys[pygame.K_SPACE]:
+            pass
+
     def move(self):
         self.pos += pygame.math.Vector2(self.velocity_x, self.velocity_y)
         self.hitbox_rect.center = self.pos
