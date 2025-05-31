@@ -177,7 +177,7 @@ class MenuManager:
                     offset_pos = bullet.rect.topleft - self.camera.offset
                     self.game.screen.blit(bullet.image, offset_pos)
 
-                self.hero.draw(self.game.screen) 
+                self.hero.draw(self.game.screen, self.camera.offset) 
 
 
     def draw_volume_slider(self):

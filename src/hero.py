@@ -67,9 +67,9 @@ class Hero(pygame.sprite.Sprite):
         self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, GUN_OFFSET_Y)
         self.screen = screen
         self.gun_images = {
-            1: pygame.image.load("assets/Weapons/AK.png").convert_alpha(),
+            1: pygame.image.load("assets/Weapons/Pistol1.png").convert_alpha(),
             2: pygame.image.load("assets/Weapons/AK.png").convert_alpha(),
-            3: pygame.image.load("assets/Weapons/AK.png").convert_alpha(),
+            3: pygame.image.load("assets/Weapons/Shotgun1.png").convert_alpha(),
         }
         self.current_gun = 1
         self.update_gun_image()
@@ -153,8 +153,8 @@ class Hero(pygame.sprite.Sprite):
         self.hitbox_rect.center = self.pos
         self.rect.center = self.hitbox_rect.center
 
-        self.pos.x = max(0, min(self.pos.x, WIDTH))
-        self.pos.y = max(0, min(self.pos.y, HEIGHT))
+        #self.pos.x = max(0, min(self.pos.x, WIDTH))
+        #self.pos.y = max(0, min(self.pos.y, HEIGHT))
 
     def update(self):
         self.user_input()
@@ -165,11 +165,11 @@ class Hero(pygame.sprite.Sprite):
             self.shoot_cooldown -= 1
         bullet_group.update()
 
-    def draw(self, screen):
+    def draw(self, screen, camera_offset = pygame.Vector2(0,0)):
         char_offset = pygame.Vector2(-10, -10)
         gun_offset = pygame.Vector2(0, 20)
-        char_pos = self.hitbox_rect.center + char_offset
-        gun_pos = self.hitbox_rect.center + gun_offset
+        char_pos = self.hitbox_rect.center + char_offset - camera_offset
+        gun_pos = self.hitbox_rect.center + gun_offset - camera_offset
         screen.blit(self.base_player_image, self.base_player_image.get_rect(center=char_pos))
         screen.blit(self.gun_image, self.gun_image.get_rect(center=gun_pos))
 
