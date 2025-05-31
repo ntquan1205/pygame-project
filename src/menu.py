@@ -1,6 +1,6 @@
 import pygame
 import random
-from hero import Hero
+from hero import *
 from settings import *
 from gun import Gun
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -163,19 +163,19 @@ class MenuManager:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
                 self.hero = Hero()
-                self.gun = Gun(self.hero)
-                all_sprites_group.add(self.hero)  # Add hero to sprite group
                 self.camera = Camera()            # Create camera instance
                 self.state = "game"
 
         elif self.state == "game":
-            self.game.screen.blit
+            self.hero.update()
             if self.hero:
-                self.hero.update()
-                self.gun.update()
-                self.gun.draw(screen)
                 self.camera.custom_draw(self.hero, all_sprites_group, self.game.screen)
-            
+
+                for bullet in bullet_group:
+                    offset_pos = bullet.rect.topleft - self.camera.offset
+                    self.game.screen.blit(bullet.image, offset_pos)
+
+                self.hero.draw(self.game.screen)
     
 
     def draw_volume_slider(self):
