@@ -153,6 +153,9 @@ class Hero(pygame.sprite.Sprite):
         self.hitbox_rect.center = self.pos
         self.rect.center = self.hitbox_rect.center
 
+        self.pos.x = max(0, min(self.pos.x, WIDTH))
+        self.pos.y = max(0, min(self.pos.y, HEIGHT))
+
     def update(self):
         self.user_input()
         self.move()

@@ -26,6 +26,8 @@ class Camera:
             offset_pos = sprite.rect.topleft - self.offset
             screen.blit(sprite.image, offset_pos)
 
+        hero_offset_pos = hero.rect.topleft - self.offset
+        screen.blit(hero.image, hero_offset_pos)
 class Button:
     def __init__(self, text, x_pos, y_pos, game):
         self.text = text
@@ -72,6 +74,7 @@ class MenuManager:
         self.btn_back = Button('    Назад', 65, 650, game)
 
         self.hero = None
+        self.camera = Camera()
 
     def update_snow(self):
         for snowflake in self.game.snow:
@@ -132,7 +135,7 @@ class MenuManager:
                 self.state = "waiting_for_start"
 
         elif self.state == "about":
-            self.game.screen.blit(self.bg_credits, (0, 0))
+            self.game.screen.blit(self.bg_credits, bg_game)
             self.btn_back.draw()
             self.update_snow()
             if self.btn_back.check_click(events):
@@ -161,22 +164,21 @@ class MenuManager:
             self.game.screen.blit(start_text, (self.game.WIDTH // 2 - start_text.get_width() // 2, self.game.HEIGHT // 2 - start_text.get_height() // 2))
 
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_RETURN]:
-                self.hero = Hero()
-                self.camera = Camera()            # Create camera instance
+            if keys[pygame.K_RETURN]:    
                 self.state = "game"
+                self.hero = Hero()  
+                self.camera = Camera()  
 
         elif self.state == "game":
-            self.hero.update()
-            if self.hero:
+            if self.hero:  
+                self.hero.update()  
                 self.camera.custom_draw(self.hero, all_sprites_group, self.game.screen)
-
                 for bullet in bullet_group:
                     offset_pos = bullet.rect.topleft - self.camera.offset
                     self.game.screen.blit(bullet.image, offset_pos)
 
-                self.hero.draw(self.game.screen)
-    
+                self.hero.draw(self.game.screen) 
+
 
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
