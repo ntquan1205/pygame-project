@@ -13,15 +13,13 @@ class Camera:
         self.floor_rect = bg_game.get_rect(topleft=(0, 0))
 
     def custom_draw(self, hero, all_sprites_group, screen):
-        # Calculate offset so hero is centered on screen
         self.offset.x = hero.rect.centerx - WIDTH // 2
         self.offset.y = hero.rect.centery - HEIGHT // 2
 
-        # Draw the background with offset
         floor_offset_pos = self.floor_rect.topleft - self.offset
         screen.blit(bg_game, floor_offset_pos)
 
-        # Draw all sprites with offset
+
         for sprite in all_sprites_group:
             offset_pos = sprite.rect.topleft - self.offset
             screen.blit(sprite.image, offset_pos)

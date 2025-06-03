@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="1">
  <tileset firstgid="1" name="mainlevbuild" tilewidth="16" tileheight="16" tilecount="2560" columns="64">
-  <image source="C:/Users/sNIGGERs/OneDrive/Рабочий стол/penis/рогалик/mainlevbuild.png" width="1024" height="640"/>
+  <image source="mainlevbuild.png" width="1024" height="640"/>
  </tileset>
  <tileset firstgid="2561" name="decorative" tilewidth="16" tileheight="16" tilecount="256" columns="16">
-  <image source="C:/Users/sNIGGERs/OneDrive/Рабочий стол/penis/рогалик/decorative.png" width="256" height="256"/>
+  <image source="decorative.png" width="256" height="256"/>
  </tileset>
  <tileset firstgid="2817" name="torch_4" tilewidth="16" tileheight="16" tilecount="1" columns="1">
-  <image source="C:/Users/sNIGGERs/OneDrive/Рабочий стол/penis/рогалик/torch_4.png" width="16" height="16"/>
+  <image source="torch_4.png" width="16" height="16"/>
  </tileset>
  <layer id="1" name="Слой тайлов 1" width="100" height="100">
   <data encoding="csv">
