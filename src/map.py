@@ -130,7 +130,6 @@ class Hero(pygame.sprite.Sprite):
 
     def is_shooting(self):
         if self.shoot_cooldown == 0:
-            # Позиция дула оружия в мировых координатах
             barrel_pos = self.pos + self.gun_barrel_offset.rotate(-self.angle)
             
             if self.current_gun == 1:
@@ -165,10 +164,8 @@ class Hero(pygame.sprite.Sprite):
         bullet_group.update()
 
     def draw(self, screen, camera):
-        # Рисуем игрока
         screen.blit(self.base_player_image, self.rect.topleft - pygame.Vector2(camera.x, camera.y))
         
-        # Рисуем оружие
         gun_pos = self.gun_rect.topleft - pygame.Vector2(camera.x, camera.y)
         screen.blit(self.gun_image, gun_pos)
 
