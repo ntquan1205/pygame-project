@@ -2,30 +2,12 @@ import pygame
 import random
 from hero import *
 from settings import *
-from gun import Gun
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bg_game = pygame.image.load("assets/InGame/ground.png").convert()
 all_sprites_group = pygame.sprite.Group()
 
-class Camera:
-    def __init__(self):
-        self.offset = pygame.math.Vector2()
-        self.floor_rect = bg_game.get_rect(topleft=(0, 0))
 
-    def custom_draw(self, hero, all_sprites_group, screen):
-        self.offset.x = hero.rect.centerx - WIDTH // 2
-        self.offset.y = hero.rect.centery - HEIGHT // 2
-
-        floor_offset_pos = self.floor_rect.topleft - self.offset
-        screen.blit(bg_game, floor_offset_pos)
-
-
-        for sprite in all_sprites_group:
-            offset_pos = sprite.rect.topleft - self.offset
-            screen.blit(sprite.image, offset_pos)
-
-        hero_offset_pos = hero.rect.topleft - self.offset
-        screen.blit(hero.image, hero_offset_pos)
 class Button:
     def __init__(self, text, x_pos, y_pos, game):
         self.text = text
@@ -71,8 +53,8 @@ class MenuManager:
         self.btn_exit = Button('   Выход', 100, 600, game)
         self.btn_back = Button('    Назад', 65, 650, game)
 
-        self.hero = None
-        self.camera = Camera()
+        self.screen_width = WIDTH
+        self.screen_height = HEIGHT
 
     def update_snow(self):
         for snowflake in self.game.snow:
@@ -164,18 +146,22 @@ class MenuManager:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:    
                 self.state = "game"
-                self.hero = Hero()  
-                self.camera = Camera()  
-
+                self.game_map = Map()
+                self.player = Hero(600, 400)
+                self.camera = Camera(self.screen_width, self.screen_height, self.game_map.map_width, self.game_map.map_height)
         elif self.state == "game":
-            if self.hero:  
-                self.hero.update()  
-                self.camera.custom_draw(self.hero, all_sprites_group, self.game.screen)
-                for bullet in bullet_group:
-                    offset_pos = bullet.rect.topleft - self.camera.offset
-                    self.game.screen.blit(bullet.image, offset_pos)
+            self.player.update(self.game_map.map_width, self.game_map.map_height)
+            self.camera.update(self.player)
+            bullet_group.update()
 
-                self.hero.draw(self.game.screen, self.camera.offset) 
+            self.game_map.Draw(self.game.screen, self.camera.camera)
+            
+            for bullet in bullet_group:
+                bullet_pos = (bullet.rect.x - self.camera.camera.x, bullet.rect.y - self.camera.camera.y)
+                self.game.screen.blit(bullet.image, bullet_pos)
+            
+            self.player.draw(self.game.screen, self.camera.camera)
+    
 
 
     def draw_volume_slider(self):
