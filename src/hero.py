@@ -231,16 +231,38 @@ class Map:
                                        y * self.tile_size - camera.y))
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, target):
+    def __init__(self, x, y, target, enemy_type="boss_1"):
         super().__init__()
-        self.image = pygame.transform.rotozoom(pygame.image.load("assets/Enemy/enemy.png").convert_alpha(), 0, ENEMY_SIZE)
+        if enemy_type == "boss_1":
+            self.animation_frames = [
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Enemy2.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Enemy3.png").convert_alpha(), 0, ENEMY_SIZE)
+            ]
+        elif enemy_type == "boss_2":
+            self.animation_frames = [
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/1.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/2.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/3.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/4.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/5.png").convert_alpha(), 0, ENEMY_SIZE)
+            ]
+        self.current_frame = 0
+        self.image = self.animation_frames[self.current_frame]
         self.rect = self.image.get_rect(center=(x, y))
         self.pos = pygame.math.Vector2(x, y)
         self.target = target  
         self.speed = ENEMY_SPEED
+        self.animation_speed = 0.035
+        self.animation_counter = 0
 
     def update(self, game_state):
         if game_state == "game":
+            self.animation_counter += self.animation_speed
+            if self.animation_counter >= 1:
+                self.animation_counter = 0
+                self.current_frame = (self.current_frame + 1) % len(self.animation_frames)
+                self.image = self.animation_frames[self.current_frame]
+            
             direction = self.target.pos - self.pos
             distance = direction.length()
             if distance != 0:
