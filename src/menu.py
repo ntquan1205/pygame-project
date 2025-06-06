@@ -2,6 +2,7 @@ import pygame
 import random
 from hero import *
 from settings import *
+import sys
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bg_game = pygame.image.load("assets/InGame/ground.png").convert()
@@ -90,7 +91,8 @@ class MenuManager:
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
-                self.game.running = False
+                pygame.quit()
+                sys.exit()
 
         self.game.screen.fill((0, 0, 0))
 
@@ -108,35 +110,12 @@ class MenuManager:
             elif self.btn_settings.check_click(events):
                 self.state = "settings"
             elif self.btn_exit.check_click(events):
-                self.game.running = False
+                pygame.quit()
+                sys.exit()
             elif self.btn_start.check_click(events):
                 self.fade_menu()
                 self.fade_waitingforstart()
                 self.state = "waiting_for_start"
-
-        elif self.state == "about":
-            self.game.screen.blit(self.bg_credits, bg_game)
-            self.btn_back.draw()
-            self.update_snow()
-            if self.btn_back.check_click(events):
-                self.state = "main"
-
-        elif self.state == "settings":
-            self.game.screen.blit(self.bg_main, (0, 0))
-            self.game.screen.blit(self.title_img, (190, -10))
-            self.update_snow()
-            self.draw_volume_slider()
-            self.btn_back.draw()
-
-            for event in events:
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mx, my = event.pos
-                    if 400 <= mx <= 800 and 340 <= my <= 360:
-                        self.volume = (mx - 400) / 400
-                        pygame.mixer.music.set_volume(self.volume)
-
-            if self.btn_back.check_click(events):
-                self.state = "main"
 
         elif self.state == "waiting_for_start":
             self.game.screen.fill((0, 0, 255)) 
@@ -146,37 +125,8 @@ class MenuManager:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]: 
                 self.state = "game"
-                self.game_map = Map()
-                self.player = Hero(600, 400)
-                self.enemy_boss = Enemy(200, 200, self.player, enemy_type="boss_1")  
-                enemy_group.add(self.enemy_boss)
-                self.enemy_minion = Enemy(800, 800, self.player, enemy_type="boss_2")  
-                enemy_group.add(self.enemy_minion)
-                self.camera = Camera(self.screen_width, self.screen_height, self.game_map.map_width, self.game_map.map_height)
-                
-        elif self.state == "game":
-            self.player.update(self.game_map.map_width, self.game_map.map_height)
-
-            self.camera.update(self.player)
-            bullet_group.update()
-
-            self.game_map.Draw(self.game.screen, self.camera.camera)
-            
-            for bullet in bullet_group:
-                bullet_pos = (bullet.rect.x - self.camera.camera.x, bullet.rect.y - self.camera.camera.y)
-                self.game.screen.blit(bullet.image, bullet_pos)
-            
-            self.player.draw(self.game.screen, self.camera.camera)
-
-            enemy_group.update(self.state)
-
-            for enemy in enemy_group:
-                screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
-
-
-    
-
-
+                self.game.init_game()  
+        
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
         pygame.draw.circle(self.game.screen, 'black', (int(400 + self.volume * 400), 355), 15)
