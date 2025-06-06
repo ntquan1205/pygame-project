@@ -233,12 +233,12 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, target, enemy_type="boss_1"):
         super().__init__()
         if enemy_type == "boss_1":
-            self.animation_frames = [
+            original_frames = [
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Enemy2.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Enemy3.png").convert_alpha(), 0, ENEMY_SIZE)
             ]
         elif enemy_type == "boss_2":
-            self.animation_frames = [
+            original_frames = [
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/1.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/2.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/3.png").convert_alpha(), 0, ENEMY_SIZE),
@@ -246,7 +246,7 @@ class Enemy(pygame.sprite.Sprite):
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/5.png").convert_alpha(), 0, ENEMY_SIZE)
             ]
         elif enemy_type == "boss_3":
-            self.animation_frames = [
+            original_frames = [
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_1.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_2.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_3.png").convert_alpha(), 0, ENEMY_SIZE),
@@ -256,26 +256,45 @@ class Enemy(pygame.sprite.Sprite):
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_7.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_8.png").convert_alpha(), 0, ENEMY_SIZE),
             ]
+        if enemy_type == "boss_3":
+            self.left_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
+            self.right_frames = [pygame.transform.flip(frame, True, False) for frame in self.left_frames]
+        else:
+            self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
+            self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]    
+
+        #self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
+        #self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
         self.current_frame = 0
-        self.image = self.animation_frames[self.current_frame]
+        self.image = self.right_frames[self.current_frame]
         self.rect = self.image.get_rect(center=(x, y))
         self.pos = pygame.math.Vector2(x, y)
         self.target = target  
         self.speed = ENEMY_SPEED
         self.animation_speed = 0.035
         self.animation_counter = 0
+        self.facing_right = True 
 
     def update(self, game_state):
         if game_state == "game":
             self.animation_counter += self.animation_speed
             if self.animation_counter >= 1:
                 self.animation_counter = 0
-                self.current_frame = (self.current_frame + 1) % len(self.animation_frames)
-                self.image = self.animation_frames[self.current_frame]
+                self.current_frame = (self.current_frame + 1) % len(self.right_frames)
+                self.image = self.right_frames[self.current_frame] if self.facing_right else self.left_frames[self.current_frame]
             
+        
             direction = self.target.pos - self.pos
             distance = direction.length()
             if distance != 0:
                 direction.normalize_ip()
+                
+                if direction.x > 0 and not self.facing_right:
+                    self.facing_right = True
+                    self.image = self.right_frames[self.current_frame]
+                elif direction.x < 0 and self.facing_right:
+                    self.facing_right = False
+                    self.image = self.left_frames[self.current_frame]
+                
                 self.pos += direction * self.speed
                 self.rect.center = self.pos
