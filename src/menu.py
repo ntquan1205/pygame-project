@@ -152,6 +152,8 @@ class MenuManager:
                 enemy_group.add(self.enemy_boss)
                 self.enemy_minion = Enemy(800, 800, self.player, enemy_type="boss_2")  
                 enemy_group.add(self.enemy_minion)
+                self.enemy_boss1 = Enemy(400, 200, self.player, enemy_type="boss_3")  
+                enemy_group.add(self.enemy_boss1)
                 self.camera = Camera(self.screen_width, self.screen_height, self.game_map.map_width, self.game_map.map_height)
                 
         elif self.state == "game":

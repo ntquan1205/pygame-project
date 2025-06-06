@@ -119,12 +119,11 @@ class Hero(pygame.sprite.Sprite):
             self.velocity_x = self.speed
         if keys[pygame.K_a]:
             self.velocity_x = -self.speed
-
         if self.velocity_x != 0 and self.velocity_y != 0: 
             self.velocity_x /= math.sqrt(2)
             self.velocity_y /= math.sqrt(2)
 
-        if pygame.mouse.get_pressed()[0] or keys[pygame.K_SPACE]:
+        if pygame.mouse.get_pressed()[0]:
             self.shoot = True
             self.is_shooting()
         else:
@@ -245,6 +244,17 @@ class Enemy(pygame.sprite.Sprite):
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/3.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/4.png").convert_alpha(), 0, ENEMY_SIZE),
                 pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/5.png").convert_alpha(), 0, ENEMY_SIZE)
+            ]
+        elif enemy_type == "boss_3":
+            self.animation_frames = [
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_1.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_2.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_3.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_4.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_5.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_6.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_7.png").convert_alpha(), 0, ENEMY_SIZE),
+                pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_8.png").convert_alpha(), 0, ENEMY_SIZE),
             ]
         self.current_frame = 0
         self.image = self.animation_frames[self.current_frame]
