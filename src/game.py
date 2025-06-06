@@ -37,6 +37,8 @@ class Game:
         enemy_group.add(self.enemy_boss)
         self.enemy_minion = Enemy(800, 800, self.player, enemy_type="boss_2")
         enemy_group.add(self.enemy_minion)
+        self.enemy_boss_3 = Enemy(800, 800, self.player, enemy_type="boss_3")
+        enemy_group.add(self.enemy_boss_3)
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
     def run_game(self):

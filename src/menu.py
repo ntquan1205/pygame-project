@@ -125,6 +125,8 @@ class MenuManager:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]: 
                 self.state = "game"
+                self.game.init_game()  
+        
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
         pygame.draw.circle(self.game.screen, 'black', (int(400 + self.volume * 400), 355), 15)
