@@ -45,7 +45,7 @@ class MenuManager:
         self.volume = 0.5
 
         self.bg_main = pygame.image.load('assets/Menu/Menu1.jpg')
-        self.bg_credits = pygame.image.load('assets/Menu/auth1.jpg')
+        self.bg_credits = pygame.image.load('assets/Menu/auth1.jpg').convert()
         self.title_img = pygame.image.load('assets/Menu/Name.png')
 
         self.btn_about = Button('Об авторах', 100, 400, game)
@@ -116,6 +116,29 @@ class MenuManager:
                 self.fade_menu()
                 self.fade_waitingforstart()
                 self.state = "waiting_for_start"
+        elif self.state == "about":
+            self.game.screen.blit(self.bg_credits, (0, 0))
+            self.btn_back.draw()
+            self.update_snow()
+            if self.btn_back.check_click(events):
+                self.state = "main"
+
+        elif self.state == "settings":
+            self.game.screen.blit(self.bg_main, (0, 0))
+            self.game.screen.blit(self.title_img, (190, -10))
+            self.update_snow()
+            self.draw_volume_slider()
+            self.btn_back.draw()
+
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mx, my = event.pos
+                    if 400 <= mx <= 800 and 340 <= my <= 360:
+                        self.volume = (mx - 400) / 400
+                        pygame.mixer.music.set_volume(self.volume)
+
+            if self.btn_back.check_click(events):
+                self.state = "main"
 
         elif self.state == "waiting_for_start":
             self.game.screen.fill((0, 0, 255)) 
