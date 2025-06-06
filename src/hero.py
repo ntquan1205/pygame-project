@@ -3,10 +3,11 @@ from settings import *
 from game import *
 import math
 from pytmx.util_pygame import load_pygame
-import sys
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bullet_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()     
+all_sprites_group = pygame.sprite.Group()     
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, angle, speed, lifetime, scale, bullet_image):
@@ -228,3 +229,28 @@ class Map:
                             screen.blit(tile, 
                                       (x * self.tile_size - camera.x, 
                                        y * self.tile_size - camera.y))
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, position):
+        super().__init__(enemy_group, all_sprites_group)   
+        self.image = pygame.image.load("assets/Enemy/Enemy.png").convert_alpha()
+        self.image = pygame.transform.rotozoom(self.image, 0, 2)
+
+        self.rect     = self.image.get_rect(center=position)
+        self.position = pygame.Vector2(position)
+        self.direction = pygame.Vector2()
+        self.speed     = ENEMY_SPEED        
+
+    def hunt_player(self, player):
+        player_vec  = pygame.Vector2(player.hitbox_rect.center)
+        to_player   = player_vec - self.position
+        if to_player.length() > 0:
+            self.direction = to_player.normalize()
+        else:
+            self.direction = pygame.Vector2() 
+
+        self.position += self.direction * self.speed
+        self.rect.center = self.position
+
+    def update(self, player):
+        self.hunt_player(player)
