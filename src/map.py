@@ -4,7 +4,7 @@ import math
 from pytmx.util_pygame import load_pygame
 
 WIDTH, HEIGHT = 1280, 720
-PLAYER_SIZE = 0.15
+PLAYER_SIZE = 0.08
 PLAYER_SPEED = 5
 GUN_OFFSET_X, GUN_OFFSET_Y = 30, 10
 HEALTH = 100
@@ -28,11 +28,20 @@ class Bullet(pygame.sprite.Sprite):
         self.bullet_lifetime = lifetime
         self.spawn_time = pygame.time.get_ticks()
 
-    def update(self):
+    def update(self, collision_objects=None):
         self.x += self.x_vel
         self.y += self.y_vel
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
+
+        if collision_objects:
+            bullet_rect = pygame.Rect(self.x - self.rect.width/2, 
+                                    self.y - self.rect.height/2, 
+                                    self.rect.width, self.rect.height)
+            for obj in collision_objects:
+                if bullet_rect.colliderect(obj):
+                    self.kill()
+                    break
 
         if pygame.time.get_ticks() - self.spawn_time > self.bullet_lifetime:
             self.kill()
@@ -62,9 +71,10 @@ class Hero(pygame.sprite.Sprite):
         self.image = self.base_player_image
         self.pos = pygame.math.Vector2(x, y)
         self.rect = self.image.get_rect(center=self.pos)
+        self.hitbox_rect = self.rect.copy()
         self.shoot = False
         self.shoot_cooldown = 0
-        self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, GUN_OFFSET_Y)
+        self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, 0)
         
         self.gun_images = {
             1: pygame.image.load("assets/Weapons/Pistol1.png").convert_alpha(),
@@ -72,8 +82,8 @@ class Hero(pygame.sprite.Sprite):
             3: pygame.image.load("assets/Weapons/Shotgun1.png").convert_alpha(),
         }
         self.current_gun = 1
-        self.update_gun_image()
         self.angle = 0
+        self.update_gun_image()
         self.load_sounds()
 
     def load_sounds(self):
@@ -84,8 +94,9 @@ class Hero(pygame.sprite.Sprite):
     def update_gun_image(self):
         base_img = self.gun_images[self.current_gun]
         self.base_gun_image = pygame.transform.rotozoom(base_img, 0, PLAYER_SIZE)
-        self.gun_image = self.base_gun_image
-        self.gun_rect = self.gun_image.get_rect(center=self.rect.center)
+        self.gun_image = pygame.transform.rotate(self.base_gun_image, -self.angle)
+        self.gun_rect = self.gun_image.get_rect(center=self.hitbox_rect.center)
+        self.barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, 0).rotate(-self.angle)
 
     def change_player(self, weapon_index):
         self.current_gun = weapon_index
@@ -93,11 +104,12 @@ class Hero(pygame.sprite.Sprite):
 
     def player_rotation(self):
         mouse_coords = pygame.mouse.get_pos()
-        x_change_mouse_player = (mouse_coords[0] - self.rect.centerx)
-        y_change_mouse_player = (mouse_coords[1] - self.rect.centery)
+        x_change_mouse_player = (mouse_coords[0] - WIDTH // 2)
+        y_change_mouse_player = (mouse_coords[1] - HEIGHT // 2)
         self.angle = math.degrees(math.atan2(y_change_mouse_player, x_change_mouse_player))
         self.gun_image = pygame.transform.rotate(self.base_gun_image, -self.angle)
-        self.gun_rect = self.gun_image.get_rect(center=self.rect.center)
+        self.gun_rect = self.gun_image.get_rect(center=self.hitbox_rect.center)
+        self.barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, 0).rotate(-self.angle)
 
     def user_input(self):
         self.velocity_x = 0
@@ -130,42 +142,66 @@ class Hero(pygame.sprite.Sprite):
 
     def is_shooting(self):
         if self.shoot_cooldown == 0:
-            barrel_pos = self.pos + self.gun_barrel_offset.rotate(-self.angle)
+            spawn_pos = self.pos + self.barrel_offset
             
             if self.current_gun == 1:
-                bullet = PistolBullet(barrel_pos.x, barrel_pos.y, self.angle)
+                bullet = PistolBullet(spawn_pos.x, spawn_pos.y, self.angle)
                 self.pistol_sound.play()
                 self.shoot_cooldown = PistolBullet.COOLDOWN
             elif self.current_gun == 2:
-                bullet = AK47Bullet(barrel_pos.x, barrel_pos.y, self.angle)
+                bullet = AK47Bullet(spawn_pos.x, spawn_pos.y, self.angle)
                 self.ak47_sound.play()
                 self.shoot_cooldown = AK47Bullet.COOLDOWN
             elif self.current_gun == 3:
-                bullet = ShotgunBullet(barrel_pos.x, barrel_pos.y, self.angle)
+                bullet = ShotgunBullet(spawn_pos.x, spawn_pos.y, self.angle)
                 self.shotgun_sound.play()
                 self.shoot_cooldown = ShotgunBullet.COOLDOWN
 
             bullet_group.add(bullet)
 
-    def move(self, map_width, map_height):
-        self.pos += pygame.math.Vector2(self.velocity_x, self.velocity_y)
+    def move(self, game_map):
+        old_pos = self.pos.copy()
+        
+        self.pos.x += self.velocity_x
+        self.hitbox_rect.centerx = self.pos.x
+        self.rect.centerx = self.pos.x
+        
+        player_rect = self.hitbox_rect.copy()
+        for obj in game_map.collision_objects:
+            if player_rect.colliderect(obj):
+                self.pos.x = old_pos.x
+                self.hitbox_rect.centerx = self.pos.x
+                self.rect.centerx = self.pos.x
+                break
+        
+        self.pos.y += self.velocity_y
+        self.hitbox_rect.centery = self.pos.y
+        self.rect.centery = self.pos.y
+        
+        player_rect = self.hitbox_rect.copy()
+        for obj in game_map.collision_objects:
+            if player_rect.colliderect(obj):
+                self.pos.y = old_pos.y
+                self.hitbox_rect.centery = self.pos.y
+                self.rect.centery = self.pos.y
+                break
+        
+        self.pos.x = max(0, min(self.pos.x, game_map.map_width - self.rect.width))
+        self.pos.y = max(0, min(self.pos.y, game_map.map_height - self.rect.height))
+        self.hitbox_rect.center = self.pos
         self.rect.center = self.pos
 
-        self.pos.x = max(0, min(self.pos.x, map_width - self.rect.width))
-        self.pos.y = max(0, min(self.pos.y, map_height - self.rect.height))
-
-    def update(self, map_width, map_height):
+    def update(self, game_map): 
         self.user_input()
-        self.move(map_width, map_height)
+        self.move(game_map) 
         self.player_rotation()
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
-        bullet_group.update()
+        bullet_group.update(game_map.collision_objects)
 
     def draw(self, screen, camera):
         screen.blit(self.base_player_image, self.rect.topleft - pygame.Vector2(camera.x, camera.y))
-        
         gun_pos = self.gun_rect.topleft - pygame.Vector2(camera.x, camera.y)
         screen.blit(self.gun_image, gun_pos)
 
@@ -195,6 +231,35 @@ class Map:
         self.tile_size = self.tmx_data.tilewidth
         self.map_width = self.tmx_data.width * self.tile_size
         self.map_height = self.tmx_data.height * self.tile_size
+        self.collision_objects = self.get_collision_objects()
+        self.spawn_point = self.get_spawn_point()
+
+    def get_spawn_point(self):
+        for layer in self.tmx_data.layers:
+            if layer.name.lower() == "spawn" and hasattr(layer, 'objects'):
+                for obj in layer.objects:
+                    return (obj.x, obj.y)
+        return (800, 1552)  
+
+    def get_collision_objects(self):
+        collision_objects = []
+        for layer in self.tmx_data.layers:
+            if hasattr(layer, 'name') and layer.name.lower() == "collision":
+                if hasattr(layer, 'objects'):
+                    for obj in layer.objects:
+                        collision_objects.append(pygame.Rect(
+                            obj.x, obj.y, obj.width, obj.height
+                        ))
+                elif hasattr(layer, 'data'):
+                    for x in range(self.tmx_data.width):
+                        for y in range(self.tmx_data.height):
+                            gid = layer.data[y][x]
+                            if gid != 0:
+                                collision_objects.append(pygame.Rect(
+                                    x * self.tile_size, y * self.tile_size,
+                                    self.tile_size, self.tile_size
+                                ))
+        return collision_objects
         
     def Draw(self, screen, camera):
         start_x = max(0, int(camera.x // self.tile_size) - 1)
@@ -203,23 +268,24 @@ class Map:
         end_y = min(self.tmx_data.height, int((camera.y + camera.height) // self.tile_size) + 2)
         
         for layer in self.tmx_data.visible_layers:
-            if hasattr(layer, 'data'): 
+            if hasattr(layer, 'data'):  # Тайловые слои
                 for y in range(start_y, end_y):
                     for x in range(start_x, end_x):
                         gid = layer.data[y][x]
-                        tile = self.tmx_data.get_tile_image_by_gid(gid)
+                        if gid != 0:
+                            tile = self.tmx_data.get_tile_image_by_gid(gid)
+                            if tile:
+                                screen.blit(tile, 
+                                          (x * self.tile_size - camera.x, 
+                                           y * self.tile_size - camera.y))
+            elif hasattr(layer, 'objects'):  # Объектные слои (декорации и т.д.)
+                for obj in layer.objects:
+                    if hasattr(obj, 'gid') and obj.gid:  # Если объект - тайл
+                        tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
                         if tile:
                             screen.blit(tile, 
-                                       (x * self.tile_size - camera.x, 
-                                        y * self.tile_size - camera.y))
-            else: 
-                for x, y, gid in layer:
-                    if start_x <= x < end_x and start_y <= y < end_y:
-                        tile = self.tmx_data.get_tile_image_by_gid(gid)
-                        if tile:
-                            screen.blit(tile, 
-                                      (x * self.tile_size - camera.x, 
-                                       y * self.tile_size - camera.y))
+                                      (obj.x - camera.x, 
+                                       obj.y - camera.y))
 
 class Game:
     def __init__(self):
@@ -231,7 +297,9 @@ class Game:
         self.clock = pygame.time.Clock()
 
         self.game_map = Map()
-        self.player = Hero(600, 400)
+        # Используем точку спавна из карты
+        spawn_x, spawn_y = self.game_map.spawn_point
+        self.player = Hero(spawn_x, spawn_y)
         self.camera = Camera(self.screen_width, self.screen_height, 
                            self.game_map.map_width, self.game_map.map_height)
 
@@ -242,9 +310,9 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-            self.player.update(self.game_map.map_width, self.game_map.map_height)
+            self.player.update(self.game_map) 
             self.camera.update(self.player)
-            bullet_group.update()
+            bullet_group.update(self.game_map.collision_objects)
 
             self.screen.fill('black')
             self.game_map.Draw(self.screen, self.camera.camera)
@@ -254,6 +322,7 @@ class Game:
                 self.screen.blit(bullet.image, bullet_pos)
             
             self.player.draw(self.screen, self.camera.camera)
+            
             pygame.display.update()
             self.clock.tick(60)
 
