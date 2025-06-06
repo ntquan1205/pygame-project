@@ -231,26 +231,19 @@ class Map:
                                        y * self.tile_size - camera.y))
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, position):
-        super().__init__(enemy_group, all_sprites_group)   
-        self.image = pygame.image.load("assets/Enemy/Enemy.png").convert_alpha()
-        self.image = pygame.transform.rotozoom(self.image, 0, 2)
+    def __init__(self, x, y, target):
+        super().__init__()
+        self.image = pygame.transform.rotozoom(pygame.image.load("assets/Enemy/enemy.png").convert_alpha(), 0, ENEMY_SIZE)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.pos = pygame.math.Vector2(x, y)
+        self.target = target  
+        self.speed = ENEMY_SPEED
 
-        self.rect     = self.image.get_rect(center=position)
-        self.position = pygame.Vector2(position)
-        self.direction = pygame.Vector2()
-        self.speed     = ENEMY_SPEED        
-
-    def hunt_player(self, player):
-        player_vec  = pygame.Vector2(player.hitbox_rect.center)
-        to_player   = player_vec - self.position
-        if to_player.length() > 0:
-            self.direction = to_player.normalize()
-        else:
-            self.direction = pygame.Vector2() 
-
-        self.position += self.direction * self.speed
-        self.rect.center = self.position
-
-    def update(self, player):
-        self.hunt_player(player)
+    def update(self, game_state):
+        if game_state == "game":
+            direction = self.target.pos - self.pos
+            distance = direction.length()
+            if distance != 0:
+                direction.normalize_ip()
+                self.pos += direction * self.speed
+                self.rect.center = self.pos

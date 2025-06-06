@@ -6,6 +6,7 @@ from settings import *
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bg_game = pygame.image.load("assets/InGame/ground.png").convert()
 all_sprites_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
 class Button:
     def __init__(self, text, x_pos, y_pos, game):
@@ -144,16 +145,16 @@ class MenuManager:
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]: 
-                enemy_group.empty() 
-                Enemy((800, 600))   
                 self.state = "game"
                 self.game_map = Map()
                 self.player = Hero(600, 400)
+                self.enemy = Enemy(200, 200, self.player)  
+                enemy_group.add(self.enemy)
                 self.camera = Camera(self.screen_width, self.screen_height, self.game_map.map_width, self.game_map.map_height)
                 
         elif self.state == "game":
             self.player.update(self.game_map.map_width, self.game_map.map_height)
-            enemy_group.update(self.player)  
+
             self.camera.update(self.player)
             bullet_group.update()
 
@@ -165,9 +166,12 @@ class MenuManager:
             
             self.player.draw(self.game.screen, self.camera.camera)
 
-            for enemy in enemy_group:                         #  NEW
-                enemy_pos = (enemy.rect.x - self.camera.camera.x,enemy.rect.y - self.camera.camera.y)
-                self.game.screen.blit(enemy.image, enemy_pos)
+            enemy_group.update(self.state)
+
+            for enemy in enemy_group:
+                screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
+
+
     
 
 
