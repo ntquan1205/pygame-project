@@ -63,8 +63,8 @@ class Hero(pygame.sprite.Sprite):
         self.rect = self.hitbox_rect.copy()
         self.shoot = False
         self.shoot_cooldown = 0
-        self.gun_offset_x = 30 # Horizontal offset from player center
-        self.gun_offset_y = 30  # Vertical offset from player center
+        self.gun_offset_x = 30 
+        self.gun_offset_y = 30  
         self.gun_barrel_offset = pygame.math.Vector2(self.gun_offset_x, self.gun_offset_y)
         self.screen = screen
         self.gun_images = {
@@ -133,7 +133,6 @@ class Hero(pygame.sprite.Sprite):
 
     def is_shooting(self):
         if self.shoot_cooldown == 0:
-            # Calculate barrel position using rotated offset
             barrel_offset = self.gun_barrel_offset.rotate(-self.angle)
             barrel_pos = self.pos + barrel_offset
             
@@ -172,7 +171,6 @@ class Hero(pygame.sprite.Sprite):
         char_pos = self.rect.topleft - pygame.Vector2(camera.x, camera.y)
         screen.blit(self.base_player_image, char_pos)
         
-        # Draw gun with proper rotation and position
         gun_pos = (self.rect.centerx + self.gun_offset_x - camera.x, self.rect.centery + self.gun_offset_y - camera.y)
         gun_rect = self.gun_image.get_rect(center=gun_pos)
         screen.blit(self.gun_image, gun_rect)
@@ -235,22 +233,39 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
         self.target = target
         self.pos = pygame.math.Vector2(x, y)
-        self.speed = speed  # Now passed as parameter
-        self.animation_speed = animation_speed  # Now passed as parameter
+        self.speed = speed
+        self.animation_speed = animation_speed
         self.animation_counter = 0
         self.facing_right = True
         self.current_frame = 0
         self.setup_frames()
         self.image = self.right_frames[self.current_frame]
         self.rect = self.image.get_rect(center=(x, y))
+        self.collision_radius = 50  
+        self.is_colliding = False
+        self.last_facing = True  
 
-    def setup_frames(self):
-        """To be implemented by child classes"""
-        pass
     def update(self, game_state):
         if game_state == "game":
-            self.animate()
-            self.move_towards_target()
+            self.check_collision()
+            
+            if not self.is_colliding:
+                self.animate()
+                self.move_towards_target()
+            else:
+                self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
+
+    def check_collision(self):
+        distance = self.pos.distance_to(self.target.pos)
+        self.is_colliding = distance < self.collision_radius
+        if not self.is_colliding:
+            direction = self.target.pos - self.pos
+            if direction.x != 0:  
+                self.last_facing = direction.x > 0
+
+
+    def setup_frames(self):
+        pass
 
     def animate(self):
         self.animation_counter += self.animation_speed
@@ -260,20 +275,21 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.right_frames[self.current_frame] if self.facing_right else self.left_frames[self.current_frame]
 
     def move_towards_target(self):
-        direction = self.target.pos - self.pos
-        distance = direction.length()
-        if distance != 0:
-            direction.normalize_ip()
-            
-            if direction.x > 0 and not self.facing_right:
-                self.facing_right = True
-                self.image = self.right_frames[self.current_frame]
-            elif direction.x < 0 and self.facing_right:
-                self.facing_right = False
-                self.image = self.left_frames[self.current_frame]
-            
-            self.pos += direction * self.speed
-            self.rect.center = self.pos
+        if not self.is_colliding:  
+            direction = self.target.pos - self.pos
+            distance = direction.length()
+            if distance != 0:
+                direction.normalize_ip()
+                
+                if direction.x > 0 and not self.facing_right:
+                    self.facing_right = True
+                    self.image = self.right_frames[self.current_frame]
+                elif direction.x < 0 and self.facing_right:
+                    self.facing_right = False
+                    self.image = self.left_frames[self.current_frame]
+                
+                self.pos += direction * self.speed
+                self.rect.center = self.pos
 
 class Boss1(Enemy):
     def __init__(self, x, y, target):
