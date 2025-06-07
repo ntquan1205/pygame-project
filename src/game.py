@@ -33,11 +33,11 @@ class Game:
     def init_game(self):
         self.game_map = Map()
         self.player = Hero(600, 400)
-        self.enemy_boss = Enemy(200, 200, self.player, enemy_type="boss_1")
+        self.enemy_boss = Boss1(200, 200, self.player)  
         enemy_group.add(self.enemy_boss)
-        self.enemy_minion = Enemy(800, 800, self.player, enemy_type="boss_2")
+        self.enemy_minion = Boss2(800, 800, self.player)  
         enemy_group.add(self.enemy_minion)
-        self.enemy_boss_3 = Enemy(800, 800, self.player, enemy_type="boss_3")
+        self.enemy_boss_3 = Boss3(800, 800, self.player)
         enemy_group.add(self.enemy_boss_3)
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
