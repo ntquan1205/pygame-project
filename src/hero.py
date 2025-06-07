@@ -52,6 +52,7 @@ class AK47Bullet(Bullet):
 class Hero(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
+        self.max_health = HEALTH
         self.health = HEALTH
         self.damage = DAMAGE
         self.speed = PLAYER_SPEED
@@ -76,11 +77,30 @@ class Hero(pygame.sprite.Sprite):
         self.update_gun_image()
         self.angle = 0
         self.load_sounds()
+        self.last_damage_time = 0
+        self.damage_cooldown = 1000
+
+    def take_damage(self, amount):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_damage_time > self.damage_cooldown:
+            self.health -= amount
+            self.last_damage_time = current_time
+
+            self.damage_sound.play()
+            
+            if self.health <= 0:
+                self.health = 0
+            
+    def is_dead(self):
+        return self.health <= 0
 
     def load_sounds(self):
         self.pistol_sound = pygame.mixer.Sound("assets/Weapons/Pistolbullet.mp3")
         self.shotgun_sound = pygame.mixer.Sound("assets/Weapons/Shotgunbullet.wav")
         self.ak47_sound = pygame.mixer.Sound("assets/Weapons/AKbullet.wav")
+
+        self.damage_sound = pygame.mixer.Sound("assets/Hero/Dead.mp3")  #
+        self.damage_sound.set_volume(0.7) 
 
     def update_gun_image(self):
         base_img = self.gun_images[self.current_gun]
@@ -94,7 +114,6 @@ class Hero(pygame.sprite.Sprite):
 
     def player_rotation(self):
         mouse_coords = pygame.mouse.get_pos()
-        # Get screen center (like in test.py)
         screen_center_x = self.screen.get_width() // 2
         screen_center_y = self.screen.get_height() // 2
         x_change_mouse_player = (mouse_coords[0] - screen_center_x)
@@ -167,7 +186,6 @@ class Hero(pygame.sprite.Sprite):
         bullet_group.update()
 
     def draw(self, screen, camera):
-        # Draw character
         char_pos = self.rect.topleft - pygame.Vector2(camera.x, camera.y)
         screen.blit(self.base_player_image, char_pos)
         
@@ -244,6 +262,7 @@ class Enemy(pygame.sprite.Sprite):
         self.collision_radius = 50  
         self.is_colliding = False
         self.last_facing = True  
+        self.damage = ENEMY_DAMAGE 
 
     def update(self, game_state):
         if game_state == "game":
@@ -258,11 +277,12 @@ class Enemy(pygame.sprite.Sprite):
     def check_collision(self):
         distance = self.pos.distance_to(self.target.pos)
         self.is_colliding = distance < self.collision_radius
+        if self.is_colliding:
+            self.target.take_damage(self.damage)
         if not self.is_colliding:
             direction = self.target.pos - self.pos
             if direction.x != 0:  
                 self.last_facing = direction.x > 0
-
 
     def setup_frames(self):
         pass
