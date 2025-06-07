@@ -256,43 +256,79 @@ class Enemy(pygame.sprite.Sprite):
         self.animation_counter = 0
         self.facing_right = True
         self.current_frame = 0
+        self.state = "walking"  
         self.setup_frames()
-        self.image = self.right_frames[self.current_frame]
+        self.image = self.right_walk_frames[self.current_frame]
         self.rect = self.image.get_rect(center=(x, y))
-        self.collision_radius = 50  
+        self.collision_radius = 50
         self.is_colliding = False
-        self.last_facing = True  
-        self.damage = ENEMY_DAMAGE 
+        self.last_facing = True
+        self.damage = ENEMY_DAMAGE
+        self.attack_cooldown = 0
+        self.attack_cooldown_max = 1000 
+        self.attack_animation_speed = 0.1  
 
     def update(self, game_state):
         if game_state == "game":
             self.check_collision()
             
-            if not self.is_colliding:
-                self.animate()
-                self.move_towards_target()
+            if self.attack_cooldown > 0:
+                self.attack_cooldown -= 1
+            
+            if self.state == "attacking":
+                self.animate_attack()
             else:
-                self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
+                if not self.is_colliding:
+                    self.animate_walk()
+                    self.move_towards_target()
 
     def check_collision(self):
         distance = self.pos.distance_to(self.target.pos)
         self.is_colliding = distance < self.collision_radius
+        
         if self.is_colliding:
-            self.target.take_damage(self.damage)
+            if self.attack_cooldown <= 0:
+                self.state = "attacking"
+                self.current_frame = 0  # Reset animation frame
+                self.animation_counter = 0
+                self.target.take_damage(self.damage)
+                self.attack_cooldown = self.attack_cooldown_max
+        else:
+            self.state = "walking"
+            
         if not self.is_colliding:
             direction = self.target.pos - self.pos
-            if direction.x != 0:  
+            if direction.x != 0:
                 self.last_facing = direction.x > 0
 
     def setup_frames(self):
-        pass
+        # This should be overridden by subclasses
+        self.right_walk_frames = []
+        self.left_walk_frames = []
+        self.right_attack_frames = []
+        self.left_attack_frames = []
 
-    def animate(self):
+    def animate_walk(self):
         self.animation_counter += self.animation_speed
         if self.animation_counter >= 1:
             self.animation_counter = 0
-            self.current_frame = (self.current_frame + 1) % len(self.right_frames)
-            self.image = self.right_frames[self.current_frame] if self.facing_right else self.left_frames[self.current_frame]
+            self.current_frame = (self.current_frame + 1) % len(self.right_walk_frames)
+            self.image = self.right_walk_frames[self.current_frame] if self.facing_right else self.left_walk_frames[self.current_frame]
+
+    def animate_attack(self):
+        self.animation_counter += self.attack_animation_speed
+        if self.animation_counter >= 1:
+            self.animation_counter = 0
+            self.current_frame += 1
+            
+            if self.current_frame >= len(self.right_attack_frames):
+                self.current_frame = 0
+                if not self.is_colliding: 
+                    self.state = "walking"
+            
+            frames = self.right_attack_frames if self.last_facing else self.left_attack_frames
+            if self.current_frame < len(frames):
+                self.image = frames[self.current_frame]
 
     def move_towards_target(self):
         if not self.is_colliding:  
@@ -303,10 +339,10 @@ class Enemy(pygame.sprite.Sprite):
                 
                 if direction.x > 0 and not self.facing_right:
                     self.facing_right = True
-                    self.image = self.right_frames[self.current_frame]
+                    self.image = self.right_walk_frames[self.current_frame]
                 elif direction.x < 0 and self.facing_right:
                     self.facing_right = False
-                    self.image = self.left_frames[self.current_frame]
+                    self.image = self.left_walk_frames[self.current_frame]
                 
                 self.pos += direction * self.speed
                 self.rect.center = self.pos
@@ -317,8 +353,8 @@ class Boss1(Enemy):
         
     def setup_frames(self):
         original_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Enemy2.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Enemy3.png").convert_alpha(), 0, ENEMY_SIZE)
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/Enemy2.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/Enemy3.png").convert_alpha(), 0, ENEMY_SIZE)
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
@@ -329,11 +365,11 @@ class Boss2(Enemy):
         
     def setup_frames(self):
         original_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/1.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/2.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/3.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/4.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/5.png").convert_alpha(), 0, ENEMY_SIZE)
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/1.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/2.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/3.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/4.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/5.png").convert_alpha(), 0, ENEMY_SIZE)
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
@@ -343,7 +379,8 @@ class Boss3(Enemy):
         super().__init__(x, y, target, speed=2.0, animation_speed=0.035)
         
     def setup_frames(self):
-        original_frames = [
+        # Walking frames
+        walk_frames = [
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_1.png").convert_alpha(), 0, ENEMY_SIZE),
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_2.png").convert_alpha(), 0, ENEMY_SIZE),
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_3.png").convert_alpha(), 0, ENEMY_SIZE),
@@ -351,7 +388,20 @@ class Boss3(Enemy):
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_5.png").convert_alpha(), 0, ENEMY_SIZE),
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_6.png").convert_alpha(), 0, ENEMY_SIZE),
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_7.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_8.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Walk_8.png").convert_alpha(), 0, ENEMY_SIZE)
         ]
-        self.left_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
-        self.right_frames = [pygame.transform.flip(frame, True, False) for frame in self.left_frames]
+        self.left_walk_frames = walk_frames
+        self.right_walk_frames = [pygame.transform.flip(frame, True, False) for frame in walk_frames]
+        attack_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_1.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_2.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_3.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_4.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_5.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_6.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_7.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_8.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Attack_9.png").convert_alpha(), 0, ENEMY_SIZE)
+        ]
+        self.left_attack_frames = attack_frames
+        self.right_attack_frames = [pygame.transform.flip(frame, True, False) for frame in attack_frames]
