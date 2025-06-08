@@ -2,32 +2,13 @@ import pygame
 import random
 from hero import *
 from settings import *
-from gun import Gun
+import sys
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bg_game = pygame.image.load("assets/InGame/ground.png").convert()
 all_sprites_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
-class Camera:
-    def __init__(self):
-        self.offset = pygame.math.Vector2()
-        self.floor_rect = bg_game.get_rect(topleft=(0, 0))
-
-    def custom_draw(self, hero, all_sprites_group, screen):
-        # Calculate offset so hero is centered on screen
-        self.offset.x = hero.rect.centerx - WIDTH // 2
-        self.offset.y = hero.rect.centery - HEIGHT // 2
-
-        # Draw the background with offset
-        floor_offset_pos = self.floor_rect.topleft - self.offset
-        screen.blit(bg_game, floor_offset_pos)
-
-        # Draw all sprites with offset
-        for sprite in all_sprites_group:
-            offset_pos = sprite.rect.topleft - self.offset
-            screen.blit(sprite.image, offset_pos)
-
-        hero_offset_pos = hero.rect.topleft - self.offset
-        screen.blit(hero.image, hero_offset_pos)
 class Button:
     def __init__(self, text, x_pos, y_pos, game):
         self.text = text
@@ -64,7 +45,7 @@ class MenuManager:
         self.volume = 0.5
 
         self.bg_main = pygame.image.load('assets/Menu/Menu1.jpg')
-        self.bg_credits = pygame.image.load('assets/Menu/auth1.jpg')
+        self.bg_credits = pygame.image.load('assets/Menu/auth1.jpg').convert()
         self.title_img = pygame.image.load('assets/Menu/Name.png')
 
         self.btn_about = Button('Об авторах', 100, 400, game)
@@ -73,8 +54,8 @@ class MenuManager:
         self.btn_exit = Button('   Выход', 100, 600, game)
         self.btn_back = Button('    Назад', 65, 650, game)
 
-        self.hero = None
-        self.camera = Camera()
+        self.screen_width = WIDTH
+        self.screen_height = HEIGHT
 
     def update_snow(self):
         for snowflake in self.game.snow:
@@ -110,7 +91,8 @@ class MenuManager:
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
-                self.game.running = False
+                pygame.quit()
+                sys.exit()
 
         self.game.screen.fill((0, 0, 0))
 
@@ -128,14 +110,14 @@ class MenuManager:
             elif self.btn_settings.check_click(events):
                 self.state = "settings"
             elif self.btn_exit.check_click(events):
-                self.game.running = False
+                pygame.quit()
+                sys.exit()
             elif self.btn_start.check_click(events):
                 self.fade_menu()
                 self.fade_waitingforstart()
                 self.state = "waiting_for_start"
-
         elif self.state == "about":
-            self.game.screen.blit(self.bg_credits, bg_game)
+            self.game.screen.blit(self.bg_credits, (0, 0))
             self.btn_back.draw()
             self.update_snow()
             if self.btn_back.check_click(events):
@@ -164,22 +146,10 @@ class MenuManager:
             self.game.screen.blit(start_text, (self.game.WIDTH // 2 - start_text.get_width() // 2, self.game.HEIGHT // 2 - start_text.get_height() // 2))
 
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_RETURN]:    
+            if keys[pygame.K_RETURN]: 
                 self.state = "game"
-                self.hero = Hero()  
-                self.camera = Camera()  
-
-        elif self.state == "game":
-            if self.hero:  
-                self.hero.update()  
-                self.camera.custom_draw(self.hero, all_sprites_group, self.game.screen)
-                for bullet in bullet_group:
-                    offset_pos = bullet.rect.topleft - self.camera.offset
-                    self.game.screen.blit(bullet.image, offset_pos)
-
-                self.hero.draw(self.game.screen, self.camera.offset) 
-
-
+                self.game.init_game()  
+        
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
         pygame.draw.circle(self.game.screen, 'black', (int(400 + self.volume * 400), 355), 15)
