@@ -1,4 +1,5 @@
 import pygame
+import pytmx
 from settings import *
 from game import *
 import math
@@ -221,30 +222,46 @@ class Map:
         self.map_width = self.tmx_data.width * self.tile_size
         self.map_height = self.tmx_data.height * self.tile_size
         
+    
     def Draw(self, screen, camera):
-        start_x = max(0, int(camera.x // self.tile_size) - 1)
-        start_y = max(0, int(camera.y // self.tile_size) - 1)
-        end_x = min(self.tmx_data.width, int((camera.x + camera.width) // self.tile_size) + 2)
-        end_y = min(self.tmx_data.height, int((camera.y + camera.height) // self.tile_size) + 2)
-        
+        offset = (-camera.x, -camera.y) 
+
         for layer in self.tmx_data.visible_layers:
-            if hasattr(layer, 'data'): 
-                for y in range(start_y, end_y):
-                    for x in range(start_x, end_x):
-                        gid = layer.data[y][x]
-                        tile = self.tmx_data.get_tile_image_by_gid(gid)
-                        if tile:
-                            screen.blit(tile, 
-                                       (x * self.tile_size - camera.x, 
-                                        y * self.tile_size - camera.y))
-            else: 
-                for x, y, gid in layer:
-                    if start_x <= x < end_x and start_y <= y < end_y:
-                        tile = self.tmx_data.get_tile_image_by_gid(gid)
-                        if tile:
-                            screen.blit(tile, 
-                                      (x * self.tile_size - camera.x, 
-                                       y * self.tile_size - camera.y))
+            if isinstance(layer, pytmx.TiledTileLayer):
+                for x, y, gid in layer.tiles():
+                    tile = self.tmx_data.get_tile_image_by_gid(gid)
+                    if tile:
+                        screen.blit(
+                            tile,
+                            (
+                                x * self.tile_size + offset[0],
+                                y * self.tile_size + offset[1]
+                            )
+                        )
+
+            elif isinstance(layer, pytmx.TiledObjectGroup):
+                for obj in layer:
+                    if hasattr(obj, "image") and obj.image:
+                        screen.blit(
+                            obj.image,
+                            (
+                                obj.x + offset[0],
+                                obj.y + offset[1]
+                            )
+                        )
+                    else:
+                        pygame.draw.rect(
+                            screen,
+                            (255, 0, 0),
+                            pygame.Rect(
+                                obj.x + offset[0],
+                                obj.y + offset[1],
+                                obj.width,
+                                obj.height
+                            ),
+                            2
+                        )
+
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, target, speed=ENEMY_SPEED, animation_speed=0.035):
