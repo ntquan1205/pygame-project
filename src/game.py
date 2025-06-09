@@ -1,3 +1,4 @@
+# game.py
 import pygame
 import random
 import sys  
@@ -35,7 +36,8 @@ class Game:
     def init_game(self):
         self.game_over = False
         self.game_map = Map()
-        self.player = Hero(600, 400)
+        spawn_x, spawn_y = self.game_map.spawn_point
+        self.player = Hero(spawn_x, spawn_y, self.game_map)
         self.enemy_boss = Boss1(200, 200, self.player)  
         enemy_group.add(self.enemy_boss)
         self.enemy_minion = Boss2(800, 800, self.player)  
@@ -50,13 +52,12 @@ class Game:
             self.menu.state = "main"
             bullet_group.empty()
             enemy_group.empty()
-            
             return
             
         if not self.game_over:
-            self.player.update(self.game_map.map_width, self.game_map.map_height)
+            self.player.update(self.game_map)
             self.camera.update(self.player)
-            bullet_group.update()
+            bullet_group.update(self.game_map.collision_objects)
             
             self.game_map.Draw(self.screen, self.camera.camera)
             
@@ -71,7 +72,6 @@ class Game:
             for enemy in enemy_group:
                 self.screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
                 
-            # Draw health bar
             self.draw_health_bar()
             
     def draw_health_bar(self):
@@ -97,7 +97,7 @@ class Game:
                     sys.exit()
 
             self.clock.tick(self.fps)
-            self.screen.fill((0, 0, 0))
+            self.screen.fill((0, 0, 0)) 
 
             if self.menu.state == "game":
                 self.run_game()
