@@ -322,6 +322,12 @@ class Enemy(pygame.sprite.Sprite):
         self.health = max_health
         self.last_hit_time = 0
         self.hit_cooldown = 500  
+        self.is_dead = False
+        self.death_animation_frames = []
+        self.death_animation_counter = 0
+        self.death_animation_speed = 0.1
+        self.current_death_frame = 0
+        self.death_animation_done = False
 
     def take_damage(self, amount):
         current_time = pygame.time.get_ticks()
@@ -329,22 +335,38 @@ class Enemy(pygame.sprite.Sprite):
             self.health -= amount
             self.last_hit_time = current_time
             if self.health <= 0:
-                self.kill()
+                self.health = 0
+                self.is_dead = True
+                self.setup_death_frames()
+
+    def setup_death_frames(self):
+        pass
 
     def update(self, game_state):
         if game_state == "game":
-            self.check_collision()
-            
-            if not self.is_colliding:
-                self.animate()
-                self.move_towards_target()
-            else:
-                self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
+            if not self.is_dead:
+                self.check_collision()
+                
+                if not self.is_colliding:
+                    self.animate()
+                    self.move_towards_target()
+                else:
+                    self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
 
-            for bullet in bullet_group:
-                if self.rect.colliderect(bullet.rect):
-                    self.take_damage(bullet.damage)
-                    bullet.kill()
+                for bullet in bullet_group:
+                    if self.rect.colliderect(bullet.rect):
+                        self.take_damage(bullet.damage)
+                        bullet.kill()
+            else:
+                self.death_animation_counter += self.death_animation_speed
+                if self.death_animation_counter >= 1 and not self.death_animation_done:
+                    self.death_animation_counter = 0
+                    self.current_death_frame += 1
+                    if self.current_death_frame >= len(self.death_animation_frames):
+                        self.death_animation_done = True
+                        self.kill()
+                    else:
+                        self.image = self.death_animation_frames[self.current_death_frame]
 
     def check_collision(self):
         distance = self.pos.distance_to(self.target.pos)
@@ -394,7 +416,17 @@ class Boss1(Enemy):
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
-
+    def setup_death_frames(self):
+        self.death_animation_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D0.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D5.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D6.png").convert_alpha(), 0, ENEMY_SIZE_2)
+        ]
+        self.image = self.death_animation_frames[0]
 class Boss2(Enemy):
     def __init__(self, x, y, target):
         super().__init__(x, y, target, speed=2.5, animation_speed=1, max_health=BOSS2_HP)
@@ -423,3 +455,18 @@ class Boss3(Enemy):
         ]
         self.left_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.right_frames = [pygame.transform.flip(frame, True, False) for frame in self.left_frames]
+
+    def setup_death_frames(self):
+        self.death_animation_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_5.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_6.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_7.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_8.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_9.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_10.png").convert_alpha(), 0, ENEMY_SIZE_2)
+        ]
+        self.image = self.death_animation_frames[0]
