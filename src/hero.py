@@ -10,7 +10,7 @@ enemy_group = pygame.sprite.Group()
 all_sprites_group = pygame.sprite.Group()     
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, angle, speed, lifetime, scale, bullet_image):
+    def __init__(self, x, y, angle, speed, lifetime, scale, bullet_image, damage):
         super().__init__()
         self.image = pygame.image.load(bullet_image).convert_alpha()
         self.image = pygame.transform.rotozoom(self.image, 0, scale)
@@ -24,6 +24,7 @@ class Bullet(pygame.sprite.Sprite):
         self.y_vel = math.sin(math.radians(self.angle)) * self.speed
         self.bullet_lifetime = lifetime
         self.spawn_time = pygame.time.get_ticks()
+        self.damage = damage 
 
     def update(self, collision_objects=None):
         self.x += self.x_vel
@@ -46,17 +47,17 @@ class Bullet(pygame.sprite.Sprite):
 class PistolBullet(Bullet):
     COOLDOWN = 15
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=10, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png")
+        super().__init__(x, y, angle, speed=10, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png", damage= PISTOL_DAMAGE)
 
 class ShotgunBullet(Bullet):
     COOLDOWN = 30
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=8, lifetime=500, scale=1.5, bullet_image="assets/Weapons/bullet.png")
+        super().__init__(x, y, angle, speed=8, lifetime=500, scale=1.5, bullet_image="assets/Weapons/bullet.png", damage= SHOTGUN_DAMAGE)
 
 class AK47Bullet(Bullet):
     COOLDOWN = 10
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=12, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png")
+        super().__init__(x, y, angle, speed=12, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png", damage= AK47_DAMAGE)
 
 class Hero(pygame.sprite.Sprite):
     def __init__(self, x, y, game_map):
@@ -301,7 +302,7 @@ class Map:
                                       (obj.x - camera.x, 
                                        obj.y - camera.y))
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, target, speed=ENEMY_SPEED, animation_speed=0.035):
+    def __init__(self, x, y, target, speed=ENEMY_SPEED, animation_speed=0.035, max_health=100):
         super().__init__()
         self.target = target
         self.pos = pygame.math.Vector2(x, y)
@@ -316,7 +317,19 @@ class Enemy(pygame.sprite.Sprite):
         self.collision_radius = 50  
         self.is_colliding = False
         self.last_facing = True  
-        self.damage = ENEMY_DAMAGE 
+        self.damage = ENEMY_DAMAGE
+        self.max_health = max_health
+        self.health = max_health
+        self.last_hit_time = 0
+        self.hit_cooldown = 500  
+
+    def take_damage(self, amount):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_hit_time > self.hit_cooldown:
+            self.health -= amount
+            self.last_hit_time = current_time
+            if self.health <= 0:
+                self.kill()
 
     def update(self, game_state):
         if game_state == "game":
@@ -327,6 +340,11 @@ class Enemy(pygame.sprite.Sprite):
                 self.move_towards_target()
             else:
                 self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
+
+            for bullet in bullet_group:
+                if self.rect.colliderect(bullet.rect):
+                    self.take_damage(bullet.damage)
+                    bullet.kill()
 
     def check_collision(self):
         distance = self.pos.distance_to(self.target.pos)
@@ -367,7 +385,7 @@ class Enemy(pygame.sprite.Sprite):
 
 class Boss1(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.02)
+        super().__init__(x, y, target, speed=1.5, animation_speed=0.02 , max_health=BOSS1_HP)
         
     def setup_frames(self):
         original_frames = [
@@ -379,7 +397,7 @@ class Boss1(Enemy):
 
 class Boss2(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=2.5, animation_speed=1)
+        super().__init__(x, y, target, speed=2.5, animation_speed=1, max_health=BOSS2_HP)
         
     def setup_frames(self):
         original_frames = [
@@ -390,7 +408,7 @@ class Boss2(Enemy):
 
 class Boss3(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=2.0, animation_speed=0.035)
+        super().__init__(x, y, target, speed=2.0, animation_speed=0.035, max_health=BOSS3_HP)
         
     def setup_frames(self):
         original_frames = [

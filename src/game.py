@@ -71,7 +71,6 @@ class Game:
             
             for enemy in enemy_group:
                 self.screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
-                
             self.draw_health_bar()
             
     def draw_health_bar(self):
