@@ -329,9 +329,18 @@ class Enemy(pygame.sprite.Sprite):
         self.current_death_frame = 0
         self.death_animation_done = False
         self.room_boundaries = None 
+        self.is_active = False 
     
     def set_room_boundaries(self, left, top, right, bottom):
         self.room_boundaries = (left, top, right, bottom)
+
+    def is_hero_in_room(self):
+        if not self.room_boundaries:
+            return True  
+        left, top, right, bottom = self.room_boundaries
+        hero_x, hero_y = self.target.pos.x, self.target.pos.y
+        return (left <= hero_x <= right and 
+                top <= hero_y <= bottom)
 
     def is_within_room(self, new_pos):
         if not self.room_boundaries:
@@ -354,19 +363,27 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self, game_state):
         if game_state == "game":
+            # Update enemy activation state based on hero position
+            self.is_active = self.is_hero_in_room()
+            
             if not self.is_dead:
-                self.check_collision()
-                
-                if not self.is_colliding:
-                    self.animate()
-                    self.move_towards_target()
-                else:
-                    self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
+                if self.is_active:  # Only process if hero is in room
+                    self.check_collision()
+                    
+                    if not self.is_colliding:
+                        self.animate()
+                        self.move_towards_target()
+                    else:
+                        self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
 
-                for bullet in bullet_group:
-                    if self.rect.colliderect(bullet.rect):
-                        self.take_damage(bullet.damage)
-                        bullet.kill()
+                    # Only check bullet collisions when active
+                    for bullet in bullet_group:
+                        if self.rect.colliderect(bullet.rect):
+                            self.take_damage(bullet.damage)
+                            bullet.kill()
+                else:
+                    # When not active, show idle frame
+                    self.image = self.right_frames[0] if self.facing_right else self.left_frames[0]
             else:
                 self.death_animation_counter += self.death_animation_speed
                 if self.death_animation_counter >= 1 and not self.death_animation_done:
@@ -379,6 +396,9 @@ class Enemy(pygame.sprite.Sprite):
                         self.image = self.death_animation_frames[self.current_death_frame]
 
     def check_collision(self):
+        if not self.is_active:
+            return
+        
         distance = self.pos.distance_to(self.target.pos)
         self.is_colliding = distance < self.collision_radius
         if self.is_colliding:
@@ -399,14 +419,15 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.right_frames[self.current_frame] if self.facing_right else self.left_frames[self.current_frame]
 
     def move_towards_target(self):
-        if not self.is_colliding:  
+   
+        if not self.is_colliding and self.is_active:  # Only move if active
             direction = self.target.pos - self.pos
             distance = direction.length()
             if distance != 0:
                 direction.normalize_ip()
-                
+            
                 new_pos = self.pos + direction * self.speed
-                
+            
                 if self.is_within_room(new_pos):
                     if direction.x > 0 and not self.facing_right:
                         self.facing_right = True
@@ -414,9 +435,10 @@ class Enemy(pygame.sprite.Sprite):
                     elif direction.x < 0 and self.facing_right:
                         self.facing_right = False
                         self.image = self.left_frames[self.current_frame]
-                    
+                
                     self.pos = new_pos
                     self.rect.center = self.pos
+    
 
 class Boss1(Enemy):
     def __init__(self, x, y, target):
