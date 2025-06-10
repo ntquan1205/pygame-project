@@ -38,18 +38,32 @@ class Game:
         self.game_map = Map()
         spawn_x, spawn_y = self.game_map.spawn_point
         self.player = Hero(spawn_x, spawn_y, self.game_map)
-        self.enemy_boss = Boss1(1000, 200, self.player)  
+
+        self.enemy_boss = Boss1(1000, 200, self.player)
+        self.enemy_boss.set_room_boundaries(570, 100, 1500, 330)
         enemy_group.add(self.enemy_boss)
-        self.enemy_boss_2 = Boss2(300, 1500, self.player)  
-        enemy_group.add(self.enemy_boss_2)
-        self.enemy_boss_3 = Boss3(800, 1100, self.player)
-        enemy_group.add(self.enemy_boss_3)
-        self.enemy_boss_4 = Boss1(1250, 750, self.player)  
-        enemy_group.add(self.enemy_boss_4)
-        self.enemy_boss_5 = Boss1(1400, 1500, self.player)  
-        enemy_group.add(self.enemy_boss_5)
-        self.enemy_boss_6 = Boss1(200, 750, self.player)  
-        enemy_group.add(self.enemy_boss_6)
+    
+        #self.enemy_boss_2 = Boss2(300, 1500, self.player)
+        #self.enemy_boss_2.set_room_boundaries(200, 1400, 400, 1600)
+        #enemy_group.add(self.enemy_boss_2)
+    
+        #self.enemy_boss_3 = Boss3(800, 1100, self.player)
+        #self.enemy_boss_3.set_room_boundaries(700, 1000, 900, 1200)
+        #enemy_group.add(self.enemy_boss_3)
+    
+        #self.enemy_boss_4 = Boss1(1250, 750, self.player)
+        #self.enemy_boss_4.set_room_boundaries(1200, 700, 1300, 800)
+        #enemy_group.add(self.enemy_boss_4)
+    
+        #self.enemy_boss_5 = Boss1(1400, 1500, self.player)
+        #self.enemy_boss_5.set_room_boundaries(1350, 1450, 1450, 1550)
+        #enemy_group.add(self.enemy_boss_5)
+    
+        #self.enemy_boss_6 = Boss1(200, 750, self.player)
+        #self.enemy_boss_6.set_room_boundaries(150, 700, 250, 800)
+        #enemy_group.add(self.enemy_boss_6)
+        
+        
 
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 

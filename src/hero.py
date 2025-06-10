@@ -328,6 +328,16 @@ class Enemy(pygame.sprite.Sprite):
         self.death_animation_speed = 0.1
         self.current_death_frame = 0
         self.death_animation_done = False
+        self.room_boundaries = None 
+    
+    def set_room_boundaries(self, left, top, right, bottom):
+        self.room_boundaries = (left, top, right, bottom)
+
+    def is_within_room(self, new_pos):
+        if not self.room_boundaries:
+            return True  
+        left, top, right, bottom = self.room_boundaries
+        return (left <= new_pos.x <= right and top <= new_pos.y <= bottom)
 
     def take_damage(self, amount):
         current_time = pygame.time.get_ticks()
@@ -395,15 +405,18 @@ class Enemy(pygame.sprite.Sprite):
             if distance != 0:
                 direction.normalize_ip()
                 
-                if direction.x > 0 and not self.facing_right:
-                    self.facing_right = True
-                    self.image = self.right_frames[self.current_frame]
-                elif direction.x < 0 and self.facing_right:
-                    self.facing_right = False
-                    self.image = self.left_frames[self.current_frame]
+                new_pos = self.pos + direction * self.speed
                 
-                self.pos += direction * self.speed
-                self.rect.center = self.pos
+                if self.is_within_room(new_pos):
+                    if direction.x > 0 and not self.facing_right:
+                        self.facing_right = True
+                        self.image = self.right_frames[self.current_frame]
+                    elif direction.x < 0 and self.facing_right:
+                        self.facing_right = False
+                        self.image = self.left_frames[self.current_frame]
+                    
+                    self.pos = new_pos
+                    self.rect.center = self.pos
 
 class Boss1(Enemy):
     def __init__(self, x, y, target):
