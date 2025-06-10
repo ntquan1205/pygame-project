@@ -10,7 +10,7 @@ enemy_group = pygame.sprite.Group()
 all_sprites_group = pygame.sprite.Group()     
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, angle, speed, lifetime, scale, bullet_image):
+    def __init__(self, x, y, angle, speed, lifetime, scale, bullet_image, damage):
         super().__init__()
         self.image = pygame.image.load(bullet_image).convert_alpha()
         self.image = pygame.transform.rotozoom(self.image, 0, scale)
@@ -24,12 +24,22 @@ class Bullet(pygame.sprite.Sprite):
         self.y_vel = math.sin(math.radians(self.angle)) * self.speed
         self.bullet_lifetime = lifetime
         self.spawn_time = pygame.time.get_ticks()
+        self.damage = damage 
 
-    def update(self):
+    def update(self, collision_objects=None):
         self.x += self.x_vel
         self.y += self.y_vel
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
+
+        if collision_objects:
+            bullet_rect = pygame.Rect(self.x - self.rect.width/2, 
+                                    self.y - self.rect.height/2, 
+                                    self.rect.width, self.rect.height)
+            for obj in collision_objects:
+                if bullet_rect.colliderect(obj):
+                    self.kill()
+                    break
 
         if pygame.time.get_ticks() - self.spawn_time > self.bullet_lifetime:
             self.kill()
@@ -37,76 +47,60 @@ class Bullet(pygame.sprite.Sprite):
 class PistolBullet(Bullet):
     COOLDOWN = 15
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=10, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png")
+        super().__init__(x, y, angle, speed=10, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png", damage= PISTOL_DAMAGE)
 
 class ShotgunBullet(Bullet):
     COOLDOWN = 30
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=8, lifetime=500, scale=1.5, bullet_image="assets/Weapons/bullet.png")
+        super().__init__(x, y, angle, speed=8, lifetime=500, scale=1.5, bullet_image="assets/Weapons/bullet.png", damage= SHOTGUN_DAMAGE)
 
 class AK47Bullet(Bullet):
     COOLDOWN = 10
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=12, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png")
+        super().__init__(x, y, angle, speed=12, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png", damage= AK47_DAMAGE)
 
 class Hero(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, game_map):
         super().__init__()
         self.max_health = HEALTH
         self.health = HEALTH
         self.damage = DAMAGE
         self.speed = PLAYER_SPEED
         self.base_player_image = pygame.transform.rotozoom(pygame.image.load("assets/Hero/Hero.png").convert_alpha(), 0, PLAYER_SIZE)
-        self.image = pygame.transform.rotozoom(self.base_player_image, 0, PLAYER_SIZE)
+        self.image = self.base_player_image
         self.pos = pygame.math.Vector2(x, y)
-        self.rect = self.image.get_rect()
-        self.hitbox_rect = self.image.get_rect(center=self.pos)
-        self.rect = self.hitbox_rect.copy()
+        self.rect = self.image.get_rect(center=self.pos)
+        self.hitbox_rect = self.rect.copy()
         self.shoot = False
         self.shoot_cooldown = 0
-        self.gun_offset_x = 30 
-        self.gun_offset_y = 30  
-        self.gun_barrel_offset = pygame.math.Vector2(self.gun_offset_x, self.gun_offset_y)
-        self.screen = screen
+        self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, 0)
+        self.game_map = game_map
+        
         self.gun_images = {
             1: pygame.image.load("assets/Weapons/Pistol1.png").convert_alpha(),
             2: pygame.image.load("assets/Weapons/AK.png").convert_alpha(),
             3: pygame.image.load("assets/Weapons/Shotgun1.png").convert_alpha(),
         }
         self.current_gun = 1
-        self.update_gun_image()
         self.angle = 0
+        self.update_gun_image()
         self.load_sounds()
         self.last_damage_time = 0
         self.damage_cooldown = 1000
-
-    def take_damage(self, amount):
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_damage_time > self.damage_cooldown:
-            self.health -= amount
-            self.last_damage_time = current_time
-
-            self.damage_sound.play()
-            
-            if self.health <= 0:
-                self.health = 0
-            
-    def is_dead(self):
-        return self.health <= 0
 
     def load_sounds(self):
         self.pistol_sound = pygame.mixer.Sound("assets/Weapons/Pistolbullet.mp3")
         self.shotgun_sound = pygame.mixer.Sound("assets/Weapons/Shotgunbullet.wav")
         self.ak47_sound = pygame.mixer.Sound("assets/Weapons/AKbullet.wav")
-
-        self.damage_sound = pygame.mixer.Sound("assets/Hero/Dead.mp3")  #
-        self.damage_sound.set_volume(0.7) 
+        self.damage_sound = pygame.mixer.Sound("assets/Hero/Dead.mp3")
+        self.damage_sound.set_volume(0.7)
 
     def update_gun_image(self):
         base_img = self.gun_images[self.current_gun]
         self.base_gun_image = pygame.transform.rotozoom(base_img, 0, PLAYER_SIZE)
-        self.gun_image = self.base_gun_image
-        self.gun_rect = self.gun_image.get_rect(center=self.rect.center)
+        self.gun_image = pygame.transform.rotate(self.base_gun_image, -self.angle)
+        self.gun_rect = self.gun_image.get_rect(center=self.hitbox_rect.center)
+        self.barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, 0).rotate(-self.angle)
 
     def change_player(self, weapon_index):
         self.current_gun = weapon_index
@@ -114,13 +108,12 @@ class Hero(pygame.sprite.Sprite):
 
     def player_rotation(self):
         mouse_coords = pygame.mouse.get_pos()
-        screen_center_x = self.screen.get_width() // 2
-        screen_center_y = self.screen.get_height() // 2
-        x_change_mouse_player = (mouse_coords[0] - screen_center_x)
-        y_change_mouse_player = (mouse_coords[1] - screen_center_y)
+        x_change_mouse_player = (mouse_coords[0] - WIDTH // 2)
+        y_change_mouse_player = (mouse_coords[1] - HEIGHT // 2)
         self.angle = math.degrees(math.atan2(y_change_mouse_player, x_change_mouse_player))
         self.gun_image = pygame.transform.rotate(self.base_gun_image, -self.angle)
-        self.gun_rect = self.gun_image.get_rect(center=self.rect.center)
+        self.gun_rect = self.gun_image.get_rect(center=self.hitbox_rect.center)
+        self.barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, 0).rotate(-self.angle)
 
     def user_input(self):
         self.velocity_x = 0
@@ -136,6 +129,7 @@ class Hero(pygame.sprite.Sprite):
             self.velocity_x = self.speed
         if keys[pygame.K_a]:
             self.velocity_x = -self.speed
+
         if self.velocity_x != 0 and self.velocity_y != 0: 
             self.velocity_x /= math.sqrt(2)
             self.velocity_y /= math.sqrt(2)
@@ -152,47 +146,79 @@ class Hero(pygame.sprite.Sprite):
 
     def is_shooting(self):
         if self.shoot_cooldown == 0:
-            barrel_offset = self.gun_barrel_offset.rotate(-self.angle)
-            barrel_pos = self.pos + barrel_offset
+            spawn_pos = self.pos + self.barrel_offset
             
             if self.current_gun == 1:
-                bullet = PistolBullet(barrel_pos.x, barrel_pos.y, self.angle)
+                bullet = PistolBullet(spawn_pos.x, spawn_pos.y, self.angle)
                 self.pistol_sound.play()
                 self.shoot_cooldown = PistolBullet.COOLDOWN
             elif self.current_gun == 2:
-                bullet = AK47Bullet(barrel_pos.x, barrel_pos.y, self.angle)
+                bullet = AK47Bullet(spawn_pos.x, spawn_pos.y, self.angle)
                 self.ak47_sound.play()
                 self.shoot_cooldown = AK47Bullet.COOLDOWN
             elif self.current_gun == 3:
-                bullet = ShotgunBullet(barrel_pos.x, barrel_pos.y, self.angle)
+                bullet = ShotgunBullet(spawn_pos.x, spawn_pos.y, self.angle)
                 self.shotgun_sound.play()
                 self.shoot_cooldown = ShotgunBullet.COOLDOWN
 
             bullet_group.add(bullet)
 
-    def move(self, map_width, map_height):
-        self.pos += pygame.math.Vector2(self.velocity_x, self.velocity_y)
+    def move(self, game_map):
+        old_pos = self.pos.copy()
+        
+        self.pos.x += self.velocity_x
+        self.hitbox_rect.centerx = self.pos.x
+        self.rect.centerx = self.pos.x
+        
+        for obj in game_map.collision_objects:
+            if self.hitbox_rect.colliderect(obj):
+                self.pos.x = old_pos.x
+                self.hitbox_rect.centerx = self.pos.x
+                self.rect.centerx = self.pos.x
+                break
+        
+        self.pos.y += self.velocity_y
+        self.hitbox_rect.centery = self.pos.y
+        self.rect.centery = self.pos.y
+        
+        for obj in game_map.collision_objects:
+            if self.hitbox_rect.colliderect(obj):
+                self.pos.y = old_pos.y
+                self.hitbox_rect.centery = self.pos.y
+                self.rect.centery = self.pos.y
+                break
+        
+        self.pos.x = max(0, min(self.pos.x, game_map.map_width - self.rect.width))
+        self.pos.y = max(0, min(self.pos.y, game_map.map_height - self.rect.height))
+        self.hitbox_rect.center = self.pos
         self.rect.center = self.pos
-        self.pos.x = max(0, min(self.pos.x, map_width - self.rect.width))
-        self.pos.y = max(0, min(self.pos.y, map_height - self.rect.height))
 
-    def update(self, map_width, map_height):
+    def take_damage(self, amount):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_damage_time > self.damage_cooldown:
+            self.health -= amount
+            self.last_damage_time = current_time
+            self.damage_sound.play()
+            
+            if self.health <= 0:
+                self.health = 0
+            
+    def is_dead(self):
+        return self.health <= 0
+
+    def update(self, game_map):
         self.user_input()
-        self.move(map_width, map_height)
+        self.move(game_map)
         self.player_rotation()
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
-        bullet_group.update()
+        bullet_group.update(game_map.collision_objects)
 
     def draw(self, screen, camera):
-        char_pos = self.rect.topleft - pygame.Vector2(camera.x, camera.y)
-        screen.blit(self.base_player_image, char_pos)
-        
-        gun_pos = (self.rect.centerx + self.gun_offset_x - camera.x, self.rect.centery + self.gun_offset_y - camera.y)
-        gun_rect = self.gun_image.get_rect(center=gun_pos)
-        screen.blit(self.gun_image, gun_rect)
-
+        screen.blit(self.base_player_image, self.rect.topleft - pygame.Vector2(camera.x, camera.y))
+        gun_pos = self.gun_rect.topleft - pygame.Vector2(camera.x, camera.y)
+        screen.blit(self.gun_image, gun_pos)
 
 class Camera:
     def __init__(self, width, height, map_width, map_height):
@@ -220,6 +246,35 @@ class Map:
         self.tile_size = self.tmx_data.tilewidth
         self.map_width = self.tmx_data.width * self.tile_size
         self.map_height = self.tmx_data.height * self.tile_size
+        self.collision_objects = self.get_collision_objects()
+        self.spawn_point = self.get_spawn_point()
+
+    def get_spawn_point(self):
+        for layer in self.tmx_data.layers:
+            if layer.name.lower() == "spawn" and hasattr(layer, 'objects'):
+                for obj in layer.objects:
+                    return (obj.x, obj.y)
+        return (800, 1552)  # Fallback spawn point
+
+    def get_collision_objects(self):
+        collision_objects = []
+        for layer in self.tmx_data.layers:
+            if hasattr(layer, 'name') and layer.name.lower() == "collision":
+                if hasattr(layer, 'objects'):
+                    for obj in layer.objects:
+                        collision_objects.append(pygame.Rect(
+                            obj.x, obj.y, obj.width, obj.height
+                        ))
+                elif hasattr(layer, 'data'):
+                    for x in range(self.tmx_data.width):
+                        for y in range(self.tmx_data.height):
+                            gid = layer.data[y][x]
+                            if gid != 0:
+                                collision_objects.append(pygame.Rect(
+                                    x * self.tile_size, y * self.tile_size,
+                                    self.tile_size, self.tile_size
+                                ))
+        return collision_objects
         
     def Draw(self, screen, camera):
         start_x = max(0, int(camera.x // self.tile_size) - 1)
@@ -232,22 +287,22 @@ class Map:
                 for y in range(start_y, end_y):
                     for x in range(start_x, end_x):
                         gid = layer.data[y][x]
-                        tile = self.tmx_data.get_tile_image_by_gid(gid)
+                        if gid != 0:
+                            tile = self.tmx_data.get_tile_image_by_gid(gid)
+                            if tile:
+                                screen.blit(tile, 
+                                          (x * self.tile_size - camera.x, 
+                                           y * self.tile_size - camera.y))
+            elif hasattr(layer, 'objects'): 
+                for obj in layer.objects:
+                    if hasattr(obj, 'gid') and obj.gid:
+                        tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
                         if tile:
                             screen.blit(tile, 
-                                       (x * self.tile_size - camera.x, 
-                                        y * self.tile_size - camera.y))
-            else: 
-                for x, y, gid in layer:
-                    if start_x <= x < end_x and start_y <= y < end_y:
-                        tile = self.tmx_data.get_tile_image_by_gid(gid)
-                        if tile:
-                            screen.blit(tile, 
-                                      (x * self.tile_size - camera.x, 
-                                       y * self.tile_size - camera.y))
-
+                                      (obj.x - camera.x, 
+                                       obj.y - camera.y))
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, target, speed=ENEMY_SPEED, animation_speed=0.035):
+    def __init__(self, x, y, target, speed=ENEMY_SPEED, animation_speed=0.035, max_health=100):
         super().__init__()
         self.target = target
         self.pos = pygame.math.Vector2(x, y)
@@ -262,17 +317,56 @@ class Enemy(pygame.sprite.Sprite):
         self.collision_radius = 50  
         self.is_colliding = False
         self.last_facing = True  
-        self.damage = ENEMY_DAMAGE 
+        self.damage = ENEMY_DAMAGE
+        self.max_health = max_health
+        self.health = max_health
+        self.last_hit_time = 0
+        self.hit_cooldown = 500  
+        self.is_dead = False
+        self.death_animation_frames = []
+        self.death_animation_counter = 0
+        self.death_animation_speed = 0.1
+        self.current_death_frame = 0
+        self.death_animation_done = False
+
+    def take_damage(self, amount):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_hit_time > self.hit_cooldown:
+            self.health -= amount
+            self.last_hit_time = current_time
+            if self.health <= 0:
+                self.health = 0
+                self.is_dead = True
+                self.setup_death_frames()
+
+    def setup_death_frames(self):
+        pass
 
     def update(self, game_state):
         if game_state == "game":
-            self.check_collision()
-            
-            if not self.is_colliding:
-                self.animate()
-                self.move_towards_target()
+            if not self.is_dead:
+                self.check_collision()
+                
+                if not self.is_colliding:
+                    self.animate()
+                    self.move_towards_target()
+                else:
+                    self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
+
+                for bullet in bullet_group:
+                    if self.rect.colliderect(bullet.rect):
+                        self.take_damage(bullet.damage)
+                        bullet.kill()
             else:
-                self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
+                self.death_animation_counter += self.death_animation_speed
+                if self.death_animation_counter >= 1 and not self.death_animation_done:
+                    self.death_animation_counter = 0
+                    self.current_death_frame += 1
+                    if self.current_death_frame >= len(self.death_animation_frames):
+                        self.death_animation_done = True
+                        self.kill()
+                    else:
+                        self.image = self.death_animation_frames[self.current_death_frame]
 
     def check_collision(self):
         distance = self.pos.distance_to(self.target.pos)
@@ -313,7 +407,7 @@ class Enemy(pygame.sprite.Sprite):
 
 class Boss1(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.02)
+        super().__init__(x, y, target, speed=1.5, animation_speed=0.02 , max_health=BOSS1_HP)
         
     def setup_frames(self):
         original_frames = [
@@ -322,10 +416,20 @@ class Boss1(Enemy):
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
-
+    def setup_death_frames(self):
+        self.death_animation_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D0.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D5.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Mob/D6.png").convert_alpha(), 0, ENEMY_SIZE_2)
+        ]
+        self.image = self.death_animation_frames[0]
 class Boss2(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=2.5, animation_speed=1)
+        super().__init__(x, y, target, speed=2.5, animation_speed=1, max_health=BOSS2_HP)
         
     def setup_frames(self):
         original_frames = [
@@ -336,7 +440,7 @@ class Boss2(Enemy):
 
 class Boss3(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=2.0, animation_speed=0.035)
+        super().__init__(x, y, target, speed=2.0, animation_speed=0.035, max_health=BOSS3_HP)
         
     def setup_frames(self):
         original_frames = [
@@ -351,3 +455,18 @@ class Boss3(Enemy):
         ]
         self.left_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.right_frames = [pygame.transform.flip(frame, True, False) for frame in self.left_frames]
+
+    def setup_death_frames(self):
+        self.death_animation_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_5.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_6.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_7.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_8.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_9.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_10.png").convert_alpha(), 0, ENEMY_SIZE_2)
+        ]
+        self.image = self.death_animation_frames[0]
