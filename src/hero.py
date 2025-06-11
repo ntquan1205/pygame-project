@@ -87,6 +87,9 @@ class Hero(pygame.sprite.Sprite):
         self.load_sounds()
         self.last_damage_time = 0
         self.damage_cooldown = 1000
+        
+        # Добавлено: направление взгляда персонажа
+        self.facing_right = True
 
     def load_sounds(self):
         self.pistol_sound = pygame.mixer.Sound("assets/Weapons/Pistolbullet.mp3")
@@ -127,8 +130,10 @@ class Hero(pygame.sprite.Sprite):
             self.velocity_y = self.speed
         if keys[pygame.K_d]:
             self.velocity_x = self.speed
+            self.facing_right = True  # Персонаж смотрит вправо
         if keys[pygame.K_a]:
             self.velocity_x = -self.speed
+            self.facing_right = False  # Персонаж смотрит влево
 
         if self.velocity_x != 0 and self.velocity_y != 0: 
             self.velocity_x /= math.sqrt(2)
@@ -216,7 +221,11 @@ class Hero(pygame.sprite.Sprite):
         bullet_group.update(game_map.collision_objects)
 
     def draw(self, screen, camera):
-        screen.blit(self.base_player_image, self.rect.topleft - pygame.Vector2(camera.x, camera.y))
+        # Отражаем спрайт персонажа если нужно
+        player_image = self.base_player_image if self.facing_right else pygame.transform.flip(self.base_player_image, True, False)
+        screen.blit(player_image, self.rect.topleft - pygame.Vector2(camera.x, camera.y))
+        
+        # Оружие рисуется как было (оно поворачивается отдельно)
         gun_pos = self.gun_rect.topleft - pygame.Vector2(camera.x, camera.y)
         screen.blit(self.gun_image, gun_pos)
 
