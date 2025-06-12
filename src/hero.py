@@ -517,7 +517,7 @@ class Boss3(Enemy):
         
 class Boss4(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.02 , max_health=BOSS1_HP)
+        super().__init__(x, y, target, speed=1.5, animation_speed=0.035 , max_health=BOSS1_HP)
         
     def setup_frames(self):
         original_frames = [

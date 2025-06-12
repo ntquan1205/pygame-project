@@ -40,28 +40,28 @@ class Game:
         self.player = Hero(spawn_x, spawn_y, self.game_map)
 
         self.enemy_boss = Boss1(1000, 200, self.player)
-        self.enemy_boss.set_room_boundaries(570, 100, 1500, 335) #Large Room 4
+        self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
         enemy_group.add(self.enemy_boss)
         
         self.enemy_boss_6 = Boss4(1300, 200, self.player)
-        self.enemy_boss_6.set_room_boundaries(570, 100, 1500, 335) #Large Room 4
+        self.enemy_boss_6.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
         enemy_group.add(self.enemy_boss_6)
     
         self.enemy_boss_2 = Boss3(300, 1500, self.player)
-        self.enemy_boss_2.set_room_boundaries(10, 1370, 425, 1600) #Room 1
+        self.enemy_boss_2.set_room_boundaries(20, 1350, 440, 1560) #Room 1
         enemy_group.add(self.enemy_boss_2)
     
         self.enemy_boss_3 = Boss2(800, 1100, self.player)
-        self.enemy_boss_3.set_room_boundaries(340, 1050, 1450, 1195) #Large Room 2
+        self.enemy_boss_3.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_boss_3)
         
     
         self.enemy_boss_4 = Boss2(1250, 750, self.player)
-        self.enemy_boss_4.set_room_boundaries(1000, 750, 1480, 810) #Room 6
+        self.enemy_boss_4.set_room_boundaries(900, 700, 1600, 900) #Room 6
         enemy_group.add(self.enemy_boss_4)
     
         self.enemy_boss_5 = Boss5(1400, 1500, self.player)
-        self.enemy_boss_5.set_room_boundaries(1210, 1370, 1520, 1520) #Room 3
+        self.enemy_boss_5.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
         enemy_group.add(self.enemy_boss_5)
     
         #self.enemy_boss_6 = Boss1(200, 750, self.player)
