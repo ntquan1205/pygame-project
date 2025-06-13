@@ -36,57 +36,59 @@ class Game:
         self.boss_level_initialized = False 
 
         self.enemies_killed = 0
-        self.total_enemies = 1
+        self.total_enemies = 6
 
     def init_boss_level(self):
         self.boss_level = True
-        self.boss_level_initialized = True  # Set this flag when boss level is initialized
-        bullet_group.empty()  # Clear any remaining bullets
-        enemy_group.empty()  # Clear any remaining enemies
+        self.boss_level_initialized = True
+        bullet_group.empty()
+        enemy_group.empty()
         
         self.game_map = Map("assets/Map/dungeon2BOSS.tmx")
+        
         spawn_x, spawn_y = self.game_map.spawn_point
         
-        # Reset player position and health (optional)
+
         self.player.pos = pygame.math.Vector2(spawn_x, spawn_y)
         self.player.rect.center = (spawn_x, spawn_y)
         self.player.hitbox_rect.center = (spawn_x, spawn_y)
-        self.player.health = self.player.max_health  # Optional: restore full health
         
-        # Reset camera
+        #Optional: restore player health and reset other stats
+        #self.player.health = self.player.max_health
+        
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
     def init_game(self):
         self.game_over = False
-        self.boss_level = False  # Reset boss level flag
+        self.boss_level = False  
         self.game_map = Map("assets/Map/dungeon1.tmx")
         spawn_x, spawn_y = self.game_map.spawn_point
         self.player = Hero(spawn_x, spawn_y, self.game_map)
 
-        #self.enemy_boss = Boss1(1000, 200, self.player)
-        #self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
-        #enemy_group.add(self.enemy_boss)
+        self.enemy_boss = Boss1(1000, 200, self.player)
+        self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_boss)
         
-        #self.enemy_boss_6 = Boss4(1300, 200, self.player)
-        #self.enemy_boss_6.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
-        #enemy_group.add(self.enemy_boss_6)
+        self.enemy_boss_6 = Boss4(1300, 200, self.player)
+        self.enemy_boss_6.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_boss_6)
     
-        #self.enemy_boss_2 = Boss3(300, 1500, self.player)
-        #self.enemy_boss_2.set_room_boundaries(20, 1350, 440, 1560) #Room 1
-        #enemy_group.add(self.enemy_boss_2)
+        self.enemy_boss_2 = Boss3(300, 1500, self.player)
+        self.enemy_boss_2.set_room_boundaries(20, 1350, 440, 1560) #Room 1
+        enemy_group.add(self.enemy_boss_2)
     
         self.enemy_boss_3 = Boss2(800, 1100, self.player)
         self.enemy_boss_3.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_boss_3)
         
     
-        #self.enemy_boss_4 = Boss2(1250, 750, self.player)
-        #self.enemy_boss_4.set_room_boundaries(900, 700, 1600, 900) #Room 6
-        #enemy_group.add(self.enemy_boss_4)
+        self.enemy_boss_4 = Boss2(1250, 750, self.player)
+        self.enemy_boss_4.set_room_boundaries(900, 700, 1600, 900) #Room 6
+        enemy_group.add(self.enemy_boss_4)
     
-        #self.enemy_boss_5 = Boss5(1400, 1500, self.player)
-        #self.enemy_boss_5.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
-        #enemy_group.add(self.enemy_boss_5)
+        self.enemy_boss_5 = Boss5(1400, 1500, self.player)
+        self.enemy_boss_5.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
+        enemy_group.add(self.enemy_boss_5)
     
         #self.enemy_boss_6 = Boss1(200, 750, self.player)
         #self.enemy_boss_6.set_room_boundaries(150, 700, 250, 800)
@@ -124,7 +126,6 @@ class Game:
                 self.screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
             self.draw_health_bar()
             
-            # Check if all enemies are dead
             if len(enemy_group) == 0 and self.menu.state == "game" and not self.boss_level_initialized:
                 self.menu.state = "waiting_for_boss"
                 self.enemies_killed = 0

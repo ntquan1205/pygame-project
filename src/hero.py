@@ -257,13 +257,15 @@ class Map:
         self.map_height = self.tmx_data.height * self.tile_size
         self.collision_objects = self.get_collision_objects()
         self.spawn_point = self.get_spawn_point()
-
     def get_spawn_point(self):
         for layer in self.tmx_data.layers:
             if layer.name.lower() == "spawn" and hasattr(layer, 'objects'):
                 for obj in layer.objects:
                     return (obj.x, obj.y)
-        return (800, 1552)  # Fallback spawn point
+        if "dungeon1.tmx" in self.tmx_data.filename:
+            return (800, 1552) 
+        else:  
+            return (400, 720) 
 
     def get_collision_objects(self):
         collision_objects = []
@@ -372,11 +374,10 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self, game_state):
         if game_state == "game":
-            # Update enemy activation state based on hero position
             self.is_active = self.is_hero_in_room()
             
             if not self.is_dead:
-                if self.is_active:  # Only process if hero is in room
+                if self.is_active:  
                     self.check_collision()
                     
                     if not self.is_colliding:
