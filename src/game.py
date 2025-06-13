@@ -33,6 +33,9 @@ class Game:
 
         self.game_over = False
 
+        self.enemies_killed = 0
+        self.total_enemies = 6
+
     def init_game(self):
         self.game_over = False
         self.game_map = Map()
@@ -67,10 +70,11 @@ class Game:
         #self.enemy_boss_6 = Boss1(200, 750, self.player)
         #self.enemy_boss_6.set_room_boundaries(150, 700, 250, 800)
         #enemy_group.add(self.enemy_boss_6)
-        
-        
 
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
+
+        self.enemies_killed = 0
+        self.total_enemies = 6
 
     def run_game(self):
         if self.player.is_dead() and not self.game_over:
@@ -98,6 +102,11 @@ class Game:
             for enemy in enemy_group:
                 self.screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
             self.draw_health_bar()
+            
+            # Check if all enemies are dead
+            if len(enemy_group) == 0 and self.menu.state == "game":
+                self.menu.state = "waiting_for_boss"
+                self.enemies_killed = 0
             
     def draw_health_bar(self):
         health_bar_width = 200
