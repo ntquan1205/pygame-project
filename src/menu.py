@@ -149,6 +149,19 @@ class MenuManager:
             if keys[pygame.K_RETURN]: 
                 self.state = "game"
                 self.game.init_game()  
+
+        elif self.state == "waiting_for_boss":
+            self.game.screen.fill((0, 0, 255))  # Blue screen
+            boss_text = self.game.big_font.render("Все враги побеждены! Готовьтесь к боссу!", True, 'white')
+            continue_text = self.game.font.render("Нажмите Enter, чтобы продолжить", True, 'white')
+            
+            self.game.screen.blit(boss_text, (self.game.WIDTH // 2 - boss_text.get_width() // 2, self.game.HEIGHT // 2 - 50))
+            self.game.screen.blit(continue_text, (self.game.WIDTH // 2 - continue_text.get_width() // 2, self.game.HEIGHT // 2 + 50))
+            
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RETURN]:
+                self.game.init_boss_level()  # Initialize boss level
+                self.state = "game"  # Switch to game state
         
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
