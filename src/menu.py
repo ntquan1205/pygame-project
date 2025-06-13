@@ -160,7 +160,8 @@ class MenuManager:
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
-                self.state = "game"
+                self.game.init_boss_level()  # Initialize boss level
+                self.state = "game"  # Switch to game state
         
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))

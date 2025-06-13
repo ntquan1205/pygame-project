@@ -250,8 +250,8 @@ class Camera:
         self.camera = pygame.Rect(x, y, self.width, self.height)
 
 class Map:
-    def __init__(self):
-        self.tmx_data = load_pygame("assets/Map/dungeon1.tmx")
+    def __init__(self, map_path="assets/Map/dungeon1.tmx"):
+        self.tmx_data = load_pygame(map_path)
         self.tile_size = self.tmx_data.tilewidth
         self.map_width = self.tmx_data.width * self.tile_size
         self.map_height = self.tmx_data.height * self.tile_size
