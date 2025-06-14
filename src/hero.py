@@ -44,6 +44,27 @@ class Bullet(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.spawn_time > self.bullet_lifetime:
             self.kill()
 
+class CircularShot(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction, speed):
+        super().__init__()
+        self.image = pygame.Surface((20, 20), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (255, 0, 0), (10, 10), 10)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.pos = pygame.math.Vector2(x, y)
+        self.direction = direction
+        self.speed = speed
+        self.damage = 1  # Damage dealt to player
+        self.lifetime = 3000  # 3 seconds
+        self.spawn_time = pygame.time.get_ticks()
+
+    def update(self):
+        self.pos += self.direction * self.speed
+        self.rect.center = (int(self.pos.x), int(self.pos.y))
+        
+        # Remove the shot if its lifetime has expired
+        if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
+            self.kill()
+
 class PistolBullet(Bullet):
     COOLDOWN = 15
     def __init__(self, x, y, angle):
@@ -75,6 +96,7 @@ class Hero(pygame.sprite.Sprite):
         self.shoot_cooldown = 0
         self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFSET_X, 0)
         self.game_map = game_map
+        self.hit_mask = pygame.mask.from_surface(self.base_player_image)
         
         self.gun_images = {
             1: pygame.image.load("assets/Weapons/Pistol1.png").convert_alpha(),
@@ -563,3 +585,226 @@ class Boss5(Enemy):
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
         ]
         self.image = self.death_animation_frames[0]
+
+class Laser(pygame.sprite.Sprite):
+    def __init__(self, owner, target, length=250, duration=2.5):
+        super().__init__()
+        self.owner = owner
+        self.target = target
+        self.length = length
+        self.duration = duration
+        self.spawn_time = pygame.time.get_ticks()
+        self.last_damage_time = 0
+        self.damage = 0.5
+        self.damage_cooldown = 300
+        self.width = 8
+        
+        # Анимационные параметры
+        self.current_length = 0
+        self.growing_speed = 20
+        self.angle = 0
+        self.image = None
+        self.rect = None
+        self.mask = None
+        self.update_direction()
+
+    def update_direction(self):
+        # Рассчитываем направление к цели
+        dx = self.target.pos.x - self.owner.rect.centerx
+        dy = self.target.pos.y - self.owner.rect.centery
+        self.angle = math.degrees(math.atan2(-dy, dx))
+        
+        # Плавное увеличение длины
+        if self.current_length < self.length:
+            self.current_length = min(self.current_length + self.growing_speed, self.length)
+        
+        # Создаем изображение луча
+        self.original_image = pygame.Surface((self.current_length, self.width), pygame.SRCALPHA)
+        
+        # Рисуем градиент (от яркого у глаза к тусклому на конце)
+        for i in range(int(self.current_length)):
+            alpha = int(255 * (1 - i/self.current_length)**0.5)
+            color = (255, 50, 50, alpha)
+            pygame.draw.line(self.original_image, color, (i, 0), (i, self.width), 1)
+        
+        # Яркое основание
+        pygame.draw.rect(self.original_image, (255, 100, 100, 255), (0, 0, 15, self.width))
+        
+        # Поворачиваем изображение
+        self.image = pygame.transform.rotate(self.original_image, self.angle)
+        self.rect = self.image.get_rect()
+        
+        # Ключевое изменение: позиционируем луч так, чтобы он начинался из центра глаза
+        direction = pygame.math.Vector2(1, 0).rotate(-self.angle)
+        start_pos = pygame.math.Vector2(self.owner.rect.centerx, self.owner.rect.centery)
+        
+        # Устанавливаем позицию лазера (начало + половина длины в направлении луча)
+        self.rect.center = start_pos + direction * self.current_length / 2
+        
+        # Обновляем маску
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self):
+        self.update_direction()
+        if pygame.time.get_ticks() - self.spawn_time > self.duration * 1000:
+            self.kill()
+            return False
+        return True
+            
+    def check_hit(self, player):
+        if hasattr(player, 'hit_mask') and self.current_length == self.length:
+            offset = (player.rect.x - self.rect.x, player.rect.y - self.rect.y)
+            if self.mask.overlap(player.hit_mask, offset):
+                current_time = pygame.time.get_ticks()
+                if current_time - self.last_damage_time > self.damage_cooldown:
+                    self.last_damage_time = current_time
+                    return True
+        return False
+    
+class EYEBOSS(Enemy):
+    def __init__(self, x, y, target):
+        super().__init__(x, y, target, speed=0, animation_speed=0.1, max_health=1000)
+        
+        self.setup_frames()
+        self.image = self.right_frames[self.current_frame]
+        self.rect = self.image.get_rect(center=(x, y))
+        self.setup_death_frames()
+        
+        self.float_offset = 0
+        self.float_speed = 0.05
+        self.float_height = 3
+        
+        self.last_teleport_time = pygame.time.get_ticks()
+        self.teleport_cooldown = 5000
+        self.teleport_spots = [
+            (157, 150), (642, 150),
+            (651, 450), (155, 450)
+        ]
+        
+        self.shots = pygame.sprite.Group()
+        self.circular_attack_cooldown = 2000
+        self.last_circular_attack = 0
+        self.shot_speed = 2
+        self.shot_image = pygame.Surface((20, 20), pygame.SRCALPHA)
+        pygame.draw.circle(self.shot_image, (255, 0, 0), (10, 10), 10)
+        
+        self.laser = None
+        self.laser_cooldown = 10000 
+        self.last_laser_time = 0
+        self.laser_duration = 3000  
+        self.laser_sound = pygame.mixer.Sound("assets/Music/surovyiy-lazernyiy-gul.mp3")
+
+    def setup_frames(self):
+        try:
+            original_frames = [
+                pygame.transform.scale(
+                    pygame.image.load(f"assets/Enemies/EYEBOSS/Idle/Eye Beast Idle{i+1}.png").convert_alpha(),
+                    (150, 150))
+                for i in range(20)
+            ]
+            self.left_frames = original_frames
+            self.right_frames = [pygame.transform.flip(frame, True, False) for frame in original_frames]
+        except:
+            fallback_surface = pygame.Surface((150, 150), pygame.SRCALPHA)
+            pygame.draw.circle(fallback_surface, (255, 0, 0), (75, 75), 75)
+            self.left_frames = [fallback_surface]
+            self.right_frames = [fallback_surface]
+
+    def setup_death_frames(self):
+        try:
+            self.death_animation_frames = [
+                pygame.transform.scale(
+                    pygame.image.load(f"assets/Enemies/EYEBOSS/Death/Eye Beast Death{i+1}.png").convert_alpha(),
+                    (150, 150))
+                for i in range(10) 
+            ]
+        except:
+            self.death_animation_frames = []
+            for i in range(10):
+                surface = pygame.Surface((150, 150), pygame.SRCALPHA)
+                color = (255, 0, 0, 255 - i*25)  
+                pygame.draw.circle(surface, color, (75, 75), 75 - i*7) 
+                self.death_animation_frames.append(surface)
+        
+        self.image = self.death_animation_frames[0] if self.death_animation_frames else self.image
+
+    def circular_attack(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_circular_attack > self.circular_attack_cooldown:
+            self.last_circular_attack = now
+            
+            for angle in range(0, 360, 30):
+                rad = math.radians(angle)
+                direction = pygame.math.Vector2(math.cos(rad), math.sin(rad))
+                
+                shot = CircularShot(
+                    self.rect.centerx,
+                    self.rect.centery,
+                    direction,
+                    self.shot_speed
+                )
+                self.shots.add(shot)
+
+    def laser_attack(self):
+        now = pygame.time.get_ticks()
+        
+        if now - self.last_laser_time > self.laser_cooldown and not self.laser:
+            self.laser = Laser(self, self.target)
+            self.laser_sound.play()
+            self.last_laser_time = now
+        
+        if self.laser:
+            if not self.laser.update():
+                self.laser = None
+            elif self.laser.check_hit(self.target):
+                self.target.take_damage(self.laser.damage)
+
+    def teleport(self):
+        available_spots = [spot for spot in self.teleport_spots 
+                         if spot != (self.pos.x, self.pos.y)]
+        if available_spots:
+            new_x, new_y = random.choice(available_spots)
+            self.pos = pygame.math.Vector2(new_x, new_y)
+            self.rect.center = (new_x, new_y)
+
+    def update(self, game_state="game"):
+        if self.is_dead:
+            self.death_animation_counter += self.death_animation_speed
+            if self.death_animation_counter >= 1 and not self.death_animation_done:
+                self.death_animation_counter = 0
+                self.current_death_frame += 1
+                if self.current_death_frame >= len(self.death_animation_frames):
+                    self.death_animation_done = True
+                    self.kill()
+                else:
+                    self.image = self.death_animation_frames[self.current_death_frame]
+            return
+        
+        now = pygame.time.get_ticks()
+        
+        if now - self.last_teleport_time > self.teleport_cooldown:
+            self.teleport()
+            self.last_teleport_time = now
+        
+        if self.target:
+            self.facing_right = self.target.pos.x > self.pos.x
+            frames = self.right_frames if self.facing_right else self.left_frames
+            self.image = frames[int(self.current_frame) % len(frames)]
+        
+        self.circular_attack()
+        self.shots.update()
+        self.laser_attack()
+        
+        self.float_offset += self.float_speed
+        self.rect.y = self.pos.y + math.sin(self.float_offset) * self.float_height
+        
+        super().update(game_state)
+
+    def draw_shots(self, surface, camera):
+        for shot in self.shots:
+            surface.blit(shot.image, (shot.rect.x - camera.x, shot.rect.y - camera.y))
+        
+        if self.laser:
+            surface.blit(self.laser.image, 
+                    (self.laser.rect.x - camera.x, 
+                        self.laser.rect.y - camera.y))

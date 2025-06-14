@@ -1,4 +1,3 @@
-# game.py
 import pygame
 import random
 import sys  
@@ -18,8 +17,14 @@ class Game:
         self.font = pygame.font.Font('freesansbold.ttf', 18)
         self.big_font = pygame.font.Font('freesansbold.ttf', 30)
 
+        # Музыка меню
         pygame.mixer.music.load('assets/Menu/MenuTrack.ogg')
         pygame.mixer.music.set_volume(0.5)
+        
+        # Музыка босса
+        self.boss_music = pygame.mixer.Sound('assets/Music/08 Red Sun (Maniac Agenda Mix).mp3')  
+        self.boss_music.set_volume(0.5)
+
         pygame.mixer.music.play(-1)
 
         self.snow = [[random.randrange(0, self.WIDTH), random.randrange(0, self.HEIGHT)] for _ in range(50)]
@@ -44,17 +49,20 @@ class Game:
         bullet_group.empty()
         enemy_group.empty()
         
+        # Остановить музыку меню и включить музыку босса
+        pygame.mixer.music.stop()
+        self.boss_music.play(-1)  # -1 означает зацикливание
+        
         self.game_map = Map("assets/Map/dungeon2BOSS.tmx")
         
         spawn_x, spawn_y = self.game_map.spawn_point
         
-
         self.player.pos = pygame.math.Vector2(spawn_x, spawn_y)
         self.player.rect.center = (spawn_x, spawn_y)
         self.player.hitbox_rect.center = (spawn_x, spawn_y)
-        
-        #Optional: restore player health and reset other stats
-        #self.player.health = self.player.max_health
+        self.eye_boss = EYEBOSS(394, 184, self.player)
+        enemy_group.add(self.eye_boss)
+        all_sprites_group.add(self.eye_boss)
         
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
@@ -90,9 +98,9 @@ class Game:
         self.enemy_boss_5.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
         enemy_group.add(self.enemy_boss_5)
     
-        #self.enemy_boss_6 = Boss1(200, 750, self.player)
-        #self.enemy_boss_6.set_room_boundaries(150, 700, 250, 800)
-        #enemy_group.add(self.enemy_boss_6)
+        self.enemy_boss_6 = Boss1(200, 750, self.player)
+        self.enemy_boss_6.set_room_boundaries(150, 700, 250, 800)
+        enemy_group.add(self.enemy_boss_6)
 
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
@@ -105,6 +113,10 @@ class Game:
             self.menu.state = "main"
             bullet_group.empty()
             enemy_group.empty()
+            # При возврате в меню остановить музыку босса и включить музыку меню
+            if self.boss_level:
+                self.boss_music.stop()
+                pygame.mixer.music.play(-1)
             return
             
         if not self.game_over:
@@ -112,23 +124,74 @@ class Game:
             self.camera.update(self.player)
             bullet_group.update(self.game_map.collision_objects)
             
+            # Проверка столкновений снарядов круговой атаки с игроком
+            for enemy in enemy_group:
+                if isinstance(enemy, EYEBOSS):
+                    for shot in enemy.shots:
+                        if shot.rect.colliderect(self.player.hitbox_rect):
+                            self.player.take_damage(shot.damage)
+                            shot.kill()
+            
+            # Проверка столкновений с лазером
+            for enemy in enemy_group:
+                if isinstance(enemy, EYEBOSS) and enemy.laser:
+                    # Получаем глобальные координаты лазера с учетом камеры
+                    laser_rect = pygame.Rect(
+                        enemy.laser.rect.x - self.camera.camera.x,
+                        enemy.laser.rect.y - self.camera.camera.y,
+                        enemy.laser.rect.width,
+                        enemy.laser.rect.height
+                    )
+                    
+                    # Проверяем столкновение с игроком
+                    if laser_rect.colliderect(self.player.hitbox_rect):
+                        current_time = pygame.time.get_ticks()
+                        if current_time - enemy.laser.last_damage_time > 1000:  # Урон раз в секунду
+                            self.player.take_damage(enemy.laser.damage)
+                            enemy.laser.last_damage_time = current_time
+            
+            # Отрисовка
             self.game_map.Draw(self.screen, self.camera.camera)
             
+            # Отрисовка пуль игрока
             for bullet in bullet_group:
                 bullet_pos = (bullet.rect.x - self.camera.camera.x, bullet.rect.y - self.camera.camera.y)
                 self.screen.blit(bullet.image, bullet_pos)
             
+            # Отрисовка игрока
             self.player.draw(self.screen, self.camera.camera)
             
+            # Обновление и отрисовка врагов
             enemy_group.update("game")
             
             for enemy in enemy_group:
+                # Отрисовка врага
                 self.screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
+                
+                # Отрисовка снарядов врага и лазера
+                if isinstance(enemy, EYEBOSS):
+                    # Круговые снаряды
+                    for shot in enemy.shots:
+                        shot_pos = (shot.rect.x - self.camera.camera.x, shot.rect.y - self.camera.camera.y)
+                        self.screen.blit(shot.image, shot_pos)
+                    
+                    # Лазер
+                    if enemy.laser:
+                        laser_pos = (enemy.laser.rect.x - self.camera.camera.x, enemy.laser.rect.y - self.camera.camera.y)
+                        self.screen.blit(enemy.laser.image, laser_pos)
+            
+            # Отрисовка HUD
             self.draw_health_bar()
             
+            # Проверка завершения уровня
             if len(enemy_group) == 0 and self.menu.state == "game" and not self.boss_level_initialized:
                 self.menu.state = "waiting_for_boss"
                 self.enemies_killed = 0
+                # При завершении уровня босса вернуть музыку меню
+                if self.boss_level:
+                    self.boss_music.stop()
+                    pygame.mixer.music.play(-1)
+
     def draw_health_bar(self):
         health_bar_width = 200
         health_bar_height = 20
