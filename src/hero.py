@@ -645,7 +645,7 @@ class Skeleton4(Enemy):
         self.image = self.death_animation_frames[0]
 
 class Laser(pygame.sprite.Sprite):
-    def __init__(self, owner, target, length=350, duration=2.5):
+    def __init__(self, owner, target, length=250, duration=2.5):
         super().__init__()
         self.owner = owner
         self.target = target
@@ -733,11 +733,10 @@ class EYEBOSS(Enemy):
         self.float_height = 3
         
         self.last_teleport_time = pygame.time.get_ticks()
-        self.teleport_cooldown = 500
+        self.teleport_cooldown = 1500
         self.teleport_spots = [
             (157, 150), (642, 150),
             (651, 450), (155, 450),
-            (300, 300)
         ]
         
         self.shots = pygame.sprite.Group()
