@@ -84,7 +84,7 @@ class Game:
         self.cat = Cat(120, 750, self)
 
         self.enemies_killed = 0
-        self.total_enemies = 9
+        self.total_enemies = 11
 
         #self.enemy_boss = Witch(1000, 200, self.player)
         #self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
