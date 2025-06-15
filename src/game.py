@@ -45,6 +45,11 @@ class Game:
         self.enemies_killed = 0
         self.total_enemies = 3
 
+
+        self.heart_image = pygame.image.load('assets/Hero/Untitled 06-08-2025 08-30-35.png').convert_alpha()
+        self.heart_image = pygame.transform.scale(self.heart_image, (32, 32))  # Подгоните под нужный размер
+
+
     def init_boss_level(self):
         self.boss_level = True
         self.boss_level_initialized = True
@@ -79,7 +84,7 @@ class Game:
         self.cat = Cat(120, 750, self)
 
         self.enemies_killed = 0
-        self.total_enemies = 9
+        self.total_enemies = 11
 
         #self.enemy_boss = Witch(1000, 200, self.player)
         #self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
@@ -221,7 +226,7 @@ class Game:
                         self.screen.blit(enemy.laser.image, laser_pos)
             
             # Отрисовка HUD
-            self.draw_health_bar()
+            self.draw_hearts()
 
             if not self.boss_level:
                 self.cat.update(self.camera.camera)  # Pass the camera to update screen position
@@ -236,20 +241,33 @@ class Game:
                     self.boss_music.stop()
                     pygame.mixer.music.play(-1)
 
-    def draw_health_bar(self):
-        health_bar_width = 200
-        health_bar_height = 20
-        health_ratio = self.player.health / self.player.max_health
-        current_health_width = health_bar_width * health_ratio
+    # def draw_health_bar(self):
+    #     health_bar_width = 200
+    #     health_bar_height = 20
+    #     health_ratio = self.player.health / self.player.max_health
+    #     current_health_width = health_bar_width * health_ratio
         
-        outline_rect = pygame.Rect(10, 725, health_bar_width, health_bar_height)
-        fill_rect = pygame.Rect(10, 725, current_health_width, health_bar_height)
+    #     outline_rect = pygame.Rect(10, 725, health_bar_width, health_bar_height)
+    #     fill_rect = pygame.Rect(10, 725, current_health_width, health_bar_height)
         
-        pygame.draw.rect(self.screen, (255, 0, 0), fill_rect)
-        pygame.draw.rect(self.screen, (255, 255, 255), outline_rect, 2)
+    #     pygame.draw.rect(self.screen, (255, 0, 0), fill_rect)
+    #     pygame.draw.rect(self.screen, (255, 255, 255), outline_rect, 2)
         
-        health_text = self.font.render(f"Health: {self.player.health}/{self.player.max_health}", True, (255, 255, 255))
-        self.screen.blit(health_text, (10, 700))
+    #     health_text = self.font.render(f"Health: {self.player.health}/{self.player.max_health}", True, (255, 255, 255))
+    #     self.screen.blit(health_text, (10, 700))
+
+    def draw_hearts(self):
+        for i in range(self.player.max_health):
+            x = 10 + i * 40  # Расстояние между сердцами
+            y = 700
+            if i < self.player.health:
+                self.screen.blit(self.heart_image, (x, y))
+            else:
+                # Можно добавить полупрозрачное или серое сердце, если хочешь отображать "пустые"
+                dark_heart = self.heart_image.copy()
+                dark_heart.fill((100, 100, 100, 100), special_flags=pygame.BLEND_RGBA_MULT)
+                self.screen.blit(dark_heart, (x, y))
+
 
     def run(self):
         while True:
