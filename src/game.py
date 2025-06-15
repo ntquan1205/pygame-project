@@ -242,14 +242,14 @@ class Game:
         health_ratio = self.player.health / self.player.max_health
         current_health_width = health_bar_width * health_ratio
         
-        outline_rect = pygame.Rect(10, 10, health_bar_width, health_bar_height)
-        fill_rect = pygame.Rect(10, 10, current_health_width, health_bar_height)
+        outline_rect = pygame.Rect(10, 725, health_bar_width, health_bar_height)
+        fill_rect = pygame.Rect(10, 725, current_health_width, health_bar_height)
         
         pygame.draw.rect(self.screen, (255, 0, 0), fill_rect)
         pygame.draw.rect(self.screen, (255, 255, 255), outline_rect, 2)
         
         health_text = self.font.render(f"Health: {self.player.health}/{self.player.max_health}", True, (255, 255, 255))
-        self.screen.blit(health_text, (10, 35))
+        self.screen.blit(health_text, (10, 700))
 
     def run(self):
         while True:
