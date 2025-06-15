@@ -874,3 +874,60 @@ class EYEBOSS(Enemy):
             surface.blit(self.laser.image, 
                     (self.laser.rect.x - camera.x, 
                         self.laser.rect.y - camera.y))
+            
+class Cat(pygame.sprite.Sprite):
+    def __init__(self, x, y, game):
+        super().__init__()
+        self.game = game
+        self.world_pos = pygame.math.Vector2(x, y)  # World position
+        self.screen_pos = pygame.math.Vector2(x, y)  # Screen position (will be updated)
+        self.load_frames()
+        self.current_frame = 0
+        self.animation_speed = 0.1
+        self.animation_counter = 0
+        self.image = self.frames[self.current_frame]
+        self.rect = self.image.get_rect(center=self.screen_pos)
+        
+    def load_frames(self):
+        self.frames = []
+        for i in range(1, 5):  # cat1.png to cat4.png
+            try:
+                frame = pygame.image.load(f"assets/Cat/Box{i}.png").convert_alpha()
+                frame = pygame.transform.scale(frame, (50, 50))  # Adjust size as needed
+                self.frames.append(frame)
+            except:
+                fallback = pygame.Surface((50, 50), pygame.SRCALPHA)
+                pygame.draw.circle(fallback, (255, 165, 0), (25, 25), 25)
+                self.frames.append(fallback)
+    
+    def update(self, camera):
+        # Update animation
+        self.animation_counter += self.animation_speed
+        if self.animation_counter >= 1:
+            self.animation_counter = 0
+            self.current_frame = (self.current_frame + 1) % len(self.frames)
+            self.image = self.frames[self.current_frame]
+        
+        # Update screen position based on camera
+        self.screen_pos.x = self.world_pos.x - camera.x
+        self.screen_pos.y = self.world_pos.y - camera.y
+        self.rect.center = self.screen_pos
+    
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+        
+        # Draw enemy counter
+        if hasattr(self.game, 'enemies_killed') and hasattr(self.game, 'total_enemies'):
+            enemies_left = max(0, self.game.total_enemies - self.game.enemies_killed)
+            counter_text = self.game.font.render(f"Enemies left: {enemies_left}", True, (255, 255, 255))
+            text_rect = counter_text.get_rect(midleft=(self.rect.right + 10, self.rect.centery))
+            
+            # Draw background for text
+            pygame.draw.rect(screen, (0, 0, 0), 
+                           (text_rect.x - 5, text_rect.y - 5, 
+                            text_rect.width + 10, text_rect.height + 10))
+            pygame.draw.rect(screen, (255, 255, 255), 
+                           (text_rect.x - 5, text_rect.y - 5, 
+                            text_rect.width + 10, text_rect.height + 10), 2)
+            
+            screen.blit(counter_text, text_rect)

@@ -36,12 +36,14 @@ class Game:
         self.enemy_minion = None
         self.camera = None
 
+        self.cat = Cat(160, 720, self)
+
         self.game_over = False
         self.boss_level = False 
         self.boss_level_initialized = False 
 
         self.enemies_killed = 0
-        self.total_enemies = 1
+        self.total_enemies = 3
 
     def init_boss_level(self):
         self.boss_level = True
@@ -65,12 +67,17 @@ class Game:
         
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
+        self.enemies_killed = 0
+        self.total_enemies = 3  
+
     def init_game(self):
         self.game_over = False
         self.boss_level = False  
         self.game_map = Map("assets/Map/dungeon1.tmx")
         spawn_x, spawn_y = self.game_map.spawn_point
         self.player = Hero(spawn_x, spawn_y, self.game_map)
+
+        self.cat = Cat(120, 750, self)
 
         
         #self.enemy_boss = Witch(1000, 200, self.player)
@@ -93,7 +100,7 @@ class Game:
         self.enemy_boss_7.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_boss_7)
 
-        self.enemy_boss_8 = Skeleton2(1000, 1100, self.player)
+        self.enemy_boss_8 = Skeleton2(1200, 1100, self.player)
         self.enemy_boss_8.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_boss_8)
         
@@ -106,14 +113,14 @@ class Game:
         #self.enemy_boss_5.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
         #enemy_group.add(self.enemy_boss_5)
     
-        #self.enemy_boss_6 = Boss1(200, 750, self.player)
+        #self.enemy_boss_6 = Boss2(200, 750, self.player)
         #self.enemy_boss_6.set_room_boundaries(150, 700, 250, 800)
         #enemy_group.add(self.enemy_boss_6)
 
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
         self.enemies_killed = 0
-        self.total_enemies = 6
+        self.total_enemies = 3
 
     def run_game(self):
         if self.player.is_dead() and not self.game_over:
@@ -190,6 +197,10 @@ class Game:
             
             # Отрисовка HUD
             self.draw_health_bar()
+
+            if not self.boss_level:
+                self.cat.update(self.camera.camera)  # Pass the camera to update screen position
+                self.cat.draw(self.screen)
             
             # Проверка завершения уровня
             if len(enemy_group) == 0 and self.menu.state == "game" and not self.boss_level_initialized:
