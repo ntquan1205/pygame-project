@@ -114,7 +114,7 @@ class Hero(pygame.sprite.Sprite):
         self.facing_right = True
 
     def load_sounds(self):
-        self.pistol_sound = pygame.mixer.Sound("assets/Weapons/Pistolbullet.mp3")
+        self.pistol_sound = pygame.mixer.Sound("assets/Weapons/processed_audio.mp3")
         self.shotgun_sound = pygame.mixer.Sound("assets/Weapons/Shotgunbullet.wav")
         self.ak47_sound = pygame.mixer.Sound("assets/Weapons/AKbullet.wav")
         self.damage_sound = pygame.mixer.Sound("assets/Hero/Dead.mp3")
