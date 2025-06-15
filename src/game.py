@@ -138,6 +138,14 @@ class Game:
             self.player.update(self.game_map)
             self.camera.update(self.player)
             bullet_group.update(self.game_map.collision_objects)
+
+            for enemy in enemy_group:
+                for bullet in bullet_group:
+                    if bullet.rect.colliderect(enemy.rect):
+                        enemy.take_damage(bullet.damage)
+                        bullet.kill()
+                        if enemy.is_dead and not enemy.death_animation_done:
+                            self.enemies_killed += 1 
             
             # Проверка столкновений снарядов круговой атаки с игроком
             for enemy in enemy_group:
