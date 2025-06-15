@@ -396,6 +396,8 @@ class Enemy(pygame.sprite.Sprite):
                 self.health = 0
                 self.is_dead = True
                 self.setup_death_frames()
+                return True  
+        return False
 
     def setup_death_frames(self):
         pass

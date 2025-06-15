@@ -160,10 +160,9 @@ class Game:
             for enemy in enemy_group:
                 for bullet in bullet_group:
                     if bullet.rect.colliderect(enemy.rect):
-                        enemy.take_damage(bullet.damage)
+                        if enemy.take_damage(bullet.damage):  # Returns True if enemy died
+                            self.enemies_killed += 1
                         bullet.kill()
-                        if enemy.is_dead and not enemy.death_animation_done:
-                            self.enemies_killed += 1 
             
             # Проверка столкновений снарядов круговой атаки с игроком
             for enemy in enemy_group:
