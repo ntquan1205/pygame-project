@@ -653,8 +653,8 @@ class Laser(pygame.sprite.Sprite):
         self.duration = duration
         self.spawn_time = pygame.time.get_ticks()
         self.last_damage_time = 0
-        self.damage = 0.5
-        self.damage_cooldown = 300
+        self.damage = 1
+        self.damage_cooldown = 100
         self.width = 8
         
         # Анимационные параметры
@@ -721,7 +721,7 @@ class Laser(pygame.sprite.Sprite):
     
 class EYEBOSS(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=0, animation_speed=0.1, max_health=1000)
+        super().__init__(x, y, target, speed=0, animation_speed=0.1, max_health=10000)
         
         self.setup_frames()
         self.image = self.right_frames[self.current_frame]
@@ -733,21 +733,21 @@ class EYEBOSS(Enemy):
         self.float_height = 3
         
         self.last_teleport_time = pygame.time.get_ticks()
-        self.teleport_cooldown = 5000
+        self.teleport_cooldown = 1000
         self.teleport_spots = [
             (157, 150), (642, 150),
             (651, 450), (155, 450)
         ]
         
         self.shots = pygame.sprite.Group()
-        self.circular_attack_cooldown = 2000
+        self.circular_attack_cooldown = 500
         self.last_circular_attack = 0
-        self.shot_speed = 2
+        self.shot_speed = 5
         self.shot_image = pygame.Surface((20, 20), pygame.SRCALPHA)
         pygame.draw.circle(self.shot_image, (255, 0, 0), (10, 10), 10)
         
         self.laser = None
-        self.laser_cooldown = 10000 
+        self.laser_cooldown = 1000 
         self.last_laser_time = 0
         self.laser_duration = 3000  
         self.laser_sound = pygame.mixer.Sound("assets/Music/surovyiy-lazernyiy-gul.mp3")
