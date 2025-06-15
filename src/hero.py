@@ -54,7 +54,7 @@ class CircularShot(pygame.sprite.Sprite):
         self.direction = direction
         self.speed = speed
         self.damage = 1 
-        self.lifetime = 5000  
+        self.lifetime = 4000  
         self.spawn_time = pygame.time.get_ticks()
 
     def update(self):
@@ -653,7 +653,7 @@ class Laser(pygame.sprite.Sprite):
         self.duration = duration
         self.spawn_time = pygame.time.get_ticks()
         self.last_damage_time = 0
-        self.damage = 1
+        self.damage = 0.5
         self.damage_cooldown = 50
         self.width = 8
         
@@ -733,7 +733,7 @@ class EYEBOSS(Enemy):
         self.float_height = 3
         
         self.last_teleport_time = pygame.time.get_ticks()
-        self.teleport_cooldown = 1500
+        self.teleport_cooldown = 2500
         self.teleport_spots = [
             (157, 150), (642, 150),
             (651, 450), (155, 450),
@@ -742,12 +742,12 @@ class EYEBOSS(Enemy):
         self.shots = pygame.sprite.Group()
         self.circular_attack_cooldown = 1000
         self.last_circular_attack = 0
-        self.shot_speed = 2
+        self.shot_speed = 1
         self.shot_image = pygame.Surface((20, 20), pygame.SRCALPHA)
         pygame.draw.circle(self.shot_image, (255, 0, 0), (10, 10), 10)
         
         self.laser = None
-        self.laser_cooldown = 6000 
+        self.laser_cooldown = 8000 
         self.last_laser_time = 0
         self.laser_duration = 4000  
         self.laser_sound = pygame.mixer.Sound("assets/Music/surovyiy-lazernyiy-gul.mp3")
