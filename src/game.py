@@ -68,7 +68,7 @@ class Game:
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
         self.enemies_killed = 0
-        self.total_enemies = 3  
+        self.total_enemies = 9
 
     def init_game(self):
         self.game_over = False
@@ -76,10 +76,11 @@ class Game:
         self.game_map = Map("assets/Map/dungeon1.tmx")
         spawn_x, spawn_y = self.game_map.spawn_point
         self.player = Hero(spawn_x, spawn_y, self.game_map)
-
         self.cat = Cat(120, 750, self)
 
-        
+        self.enemies_killed = 0
+        self.total_enemies = 9
+
         #self.enemy_boss = Witch(1000, 200, self.player)
         #self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
         #enemy_group.add(self.enemy_boss)
@@ -88,21 +89,41 @@ class Game:
         #self.enemy_boss_6.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
         #enemy_group.add(self.enemy_boss_6)
     
-        #self.enemy_boss_2 = Boss3(300, 1500, self.player)
-        #self.enemy_boss_2.set_room_boundaries(20, 1350, 440, 1560) #Room 1
-        #enemy_group.add(self.enemy_boss_2)
-    
-        self.enemy_boss_3 = Boss2(800, 1100, self.player)
-        self.enemy_boss_3.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
-        enemy_group.add(self.enemy_boss_3)
+        self.enemy_1 = Skeleton2(400, 1100, self.player)
+        self.enemy_1.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_1)
 
-        self.enemy_boss_7 = Skeleton1(1000, 1100, self.player)
-        self.enemy_boss_7.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
-        enemy_group.add(self.enemy_boss_7)
+        self.enemy_2 = Skeleton1(600, 1100, self.player)
+        self.enemy_2.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_2)
 
-        self.enemy_boss_8 = Skeleton2(1200, 1100, self.player)
-        self.enemy_boss_8.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
-        enemy_group.add(self.enemy_boss_8)
+        self.enemy_3 = Skeleton3(800, 1100, self.player)
+        self.enemy_3.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_3)
+
+        self.enemy_4 = Skeleton4(1000, 1100, self.player)
+        self.enemy_4.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_4)
+
+        self.enemy_boss_5 = Boss(1200, 1100, self.player)
+        self.enemy_boss_5.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_boss_5)
+
+        self.enemy_6 = Skeleton1(300, 1500, self.player)
+        self.enemy_6.set_room_boundaries(20, 1350, 440, 1560) #Room 1
+        enemy_group.add(self.enemy_6)
+
+        self.enemy_7 = Skeleton2(100, 1500, self.player)
+        self.enemy_7.set_room_boundaries(20, 1350, 440, 1560) #Room 1
+        enemy_group.add(self.enemy_7)
+
+        self.enemy_8 = Skeleton3(1400, 1500, self.player)
+        self.enemy_8.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
+        enemy_group.add(self.enemy_8)
+
+        self.enemy_9 = Skeleton4(1500, 1500, self.player)
+        self.enemy_9.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
+        enemy_group.add(self.enemy_9)
         
     
         #self.enemy_boss_4 = Boss2(1250, 750, self.player)
@@ -118,9 +139,6 @@ class Game:
         #enemy_group.add(self.enemy_boss_6)
 
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
-
-        self.enemies_killed = 0
-        self.total_enemies = 3
 
     def run_game(self):
         if self.player.is_dead() and not self.game_over:

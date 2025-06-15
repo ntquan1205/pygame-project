@@ -559,19 +559,7 @@ class Skeleton2(Enemy):
         ]
         self.image = self.death_animation_frames[0]
 
-class Boss2(Enemy):
-    def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=2.5, animation_speed=1, max_health=BOSS2_HP)
-        self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
-        
-    def setup_frames(self):
-        original_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_2/Spell.png").convert_alpha(), 0, ENEMY_SIZE),
-        ]
-        self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
-        self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
-
-class Boss3(Enemy):
+class Boss(Enemy):
     def __init__(self, x, y, target):
         super().__init__(x, y, target, speed=2.0, animation_speed=0.035, max_health=BOSS3_HP)
         
@@ -604,51 +592,53 @@ class Boss3(Enemy):
         ]
         self.image = self.death_animation_frames[0]
         
-class Boss4(Enemy):
+class Skeleton3(Enemy):
     def __init__(self, x, y, target):
         super().__init__(x, y, target, speed=1.5, animation_speed=0.035 , max_health=BOSS1_HP)
+        self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
         
     def setup_frames(self):
         original_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
     def setup_death_frames(self):
         self.death_animation_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_3/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
         ]
         self.image = self.death_animation_frames[0]
         
-class Boss5(Enemy):
+class Skeleton4(Enemy):
     def __init__(self, x, y, target):
         super().__init__(x, y, target, speed=1.5, animation_speed=0.02 , max_health=BOSS1_HP)
+        self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
         
     def setup_frames(self):
         original_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
     def setup_death_frames(self):
         self.death_animation_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss_4/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
         ]
         self.image = self.death_animation_frames[0]
 
