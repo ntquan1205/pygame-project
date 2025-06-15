@@ -53,8 +53,8 @@ class CircularShot(pygame.sprite.Sprite):
         self.pos = pygame.math.Vector2(x, y)
         self.direction = direction
         self.speed = speed
-        self.damage = 1  # Damage dealt to player
-        self.lifetime = 3000  # 3 seconds
+        self.damage = 1 
+        self.lifetime = 5000  
         self.spawn_time = pygame.time.get_ticks()
 
     def update(self):
@@ -645,7 +645,7 @@ class Skeleton4(Enemy):
         self.image = self.death_animation_frames[0]
 
 class Laser(pygame.sprite.Sprite):
-    def __init__(self, owner, target, length=400, duration=2.5):
+    def __init__(self, owner, target, length=500, duration=2.5):
         super().__init__()
         self.owner = owner
         self.target = target
@@ -733,10 +733,11 @@ class EYEBOSS(Enemy):
         self.float_height = 3
         
         self.last_teleport_time = pygame.time.get_ticks()
-        self.teleport_cooldown = 3000
+        self.teleport_cooldown = 2000
         self.teleport_spots = [
             (157, 150), (642, 150),
-            (651, 450), (155, 450)
+            (651, 450), (155, 450),
+            (300, 300)
         ]
         
         self.shots = pygame.sprite.Group()
