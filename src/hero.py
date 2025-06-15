@@ -386,6 +386,9 @@ class Enemy(pygame.sprite.Sprite):
         return (left <= new_pos.x <= right and top <= new_pos.y <= bottom)
 
     def take_damage(self, amount):
+        if self.is_dead:  # Already dead, don't process again
+            return False
+            
         current_time = pygame.time.get_ticks()
         if current_time - self.last_hit_time > self.hit_cooldown:
             self.health -= amount
@@ -396,7 +399,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.health = 0
                 self.is_dead = True
                 self.setup_death_frames()
-                return True  
+                return True  # Signal that enemy died
         return False
 
     def setup_death_frames(self):
@@ -908,18 +911,19 @@ class Cat(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
         
-        # Draw enemy counter
+        # Calculate remaining enemies more reliably
         if hasattr(self.game, 'enemies_killed') and hasattr(self.game, 'total_enemies'):
-            enemies_left = max(0, self.game.total_enemies - self.game.enemies_killed)
-            counter_text = self.game.font.render(f"Enemies left: {enemies_left}", True, (255, 255, 255))
+            # Count active enemies that aren't dead yet
+            active_enemies = sum(1 for enemy in enemy_group if not enemy.is_dead)
+            counter_text = self.game.font.render(f"Enemies left: {active_enemies}", True, (255, 255, 255))
             text_rect = counter_text.get_rect(midleft=(self.rect.right + 10, self.rect.centery))
             
             # Draw background for text
             pygame.draw.rect(screen, (0, 0, 0), 
-                           (text_rect.x - 5, text_rect.y - 5, 
+                        (text_rect.x - 5, text_rect.y - 5, 
                             text_rect.width + 10, text_rect.height + 10))
             pygame.draw.rect(screen, (255, 255, 255), 
-                           (text_rect.x - 5, text_rect.y - 5, 
+                        (text_rect.x - 5, text_rect.y - 5, 
                             text_rect.width + 10, text_rect.height + 10), 2)
             
             screen.blit(counter_text, text_rect)

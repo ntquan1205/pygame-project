@@ -43,7 +43,7 @@ class Game:
         self.boss_level_initialized = False 
 
         self.enemies_killed = 0
-        self.total_enemies = 3
+        self.total_enemies = 9
 
 
         self.heart_image = pygame.image.load('assets/Hero/Untitled 06-08-2025 08-30-35.png').convert_alpha()
@@ -82,9 +82,6 @@ class Game:
         spawn_x, spawn_y = self.game_map.spawn_point
         self.player = Hero(spawn_x, spawn_y, self.game_map)
         self.cat = Cat(120, 750, self)
-
-        self.enemies_killed = 0
-        self.total_enemies = 11
 
         #self.enemy_boss = Witch(1000, 200, self.player)
         #self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
@@ -168,7 +165,7 @@ class Game:
                         if enemy.take_damage(bullet.damage):  # Returns True if enemy died
                             self.enemies_killed += 1
                         bullet.kill()
-            
+                        break 
             # Проверка столкновений снарядов круговой атаки с игроком
             for enemy in enemy_group:
                 if isinstance(enemy, EYEBOSS):
