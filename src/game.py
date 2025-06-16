@@ -284,17 +284,22 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE and self.menu.state == "game":
+                    # Allow pausing in both normal game and boss level
+                    if event.key == pygame.K_ESCAPE and (self.menu.state == "game" or self.boss_level):
                         self.menu.state = "pause"
                     elif event.key == pygame.K_ESCAPE and self.menu.state == "pause":
-                        self.menu.state = "game"
-
+                        # Only unpause if we're actually in the game (not in waiting states)
+                        if not self.menu.state in ["waiting_for_start", "waiting_for_boss"]:
+                            self.menu.state = "game"
+                            
             self.clock.tick(self.fps)
             self.screen.fill((0, 0, 0)) 
 
             if self.menu.state == "game":
                 self.run_game()
-            else:
+            
+            # Draw menu on top if not in game state
+            if self.menu.state != "game":
                 self.menu.update()
 
             pygame.display.flip()
