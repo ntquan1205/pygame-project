@@ -2,7 +2,7 @@ import pygame
 import random
 import sys  
 from menu import *
-from hero import *
+from characters import *
 from settings import *
 
 class Game:

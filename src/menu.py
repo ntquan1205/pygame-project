@@ -1,6 +1,6 @@
 import pygame
 import random
-from hero import *
+from characters import *
 from settings import *
 import sys
 
@@ -190,8 +190,29 @@ class MenuManager:
         
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
-        pygame.draw.circle(self.game.screen, 'black', (int(400 + self.volume * 400), 355), 15)
+        
+        slider_x = int(400 + self.volume * 400)
+        slider_rect = pygame.Rect(slider_x - 15, 340, 30, 30) 
+        
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_pressed = pygame.mouse.get_pressed()[0]
+        
+        if mouse_pressed:
+            if slider_rect.collidepoint(mouse_pos) and not hasattr(self, 'dragging_volume'):
+                self.dragging_volume = True
+        else:
+            if hasattr(self, 'dragging_volume'):
+                del self.dragging_volume
+        
+        if hasattr(self, 'dragging_volume'):
+            new_volume = (mouse_pos[0] - 400) / 400
+            self.volume = max(0, min(1, new_volume))  
+            
+            pygame.mixer.music.set_volume(self.volume)
+            self.game.boss_music.set_volume(self.volume)
+        
+        pygame.draw.circle(self.game.screen, 'black', (slider_x, 355), 15)
+        
         vol_text = self.game.big_font.render(f'Громкость: {int(self.volume * 100)}%', True, 'black')
         pygame.draw.rect(self.game.screen, 'lightgrey', (140, 330, 250, 50))
         self.game.screen.blit(vol_text, (150, 345))
-        

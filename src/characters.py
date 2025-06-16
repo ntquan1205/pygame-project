@@ -722,7 +722,7 @@ class Laser(pygame.sprite.Sprite):
     
 class EYEBOSS(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=0, animation_speed=0.1, max_health=1000)
+        super().__init__(x, y, target, speed=0, animation_speed=0.1, max_health= EYE_BOSS_HP)
         
         self.setup_frames()
         self.image = self.right_frames[self.current_frame]
