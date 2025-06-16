@@ -61,14 +61,13 @@ class CircularShot(pygame.sprite.Sprite):
         self.pos += self.direction * self.speed
         self.rect.center = (int(self.pos.x), int(self.pos.y))
         
-        # Remove the shot if its lifetime has expired
         if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
             self.kill()
 
 class PistolBullet(Bullet):
     COOLDOWN = 15
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=10, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png", damage= PISTOL_DAMAGE)
+        super().__init__(x, y, angle, speed= PISTOL_SPEED, lifetime= PISTOL_LIFETIME, scale=1, bullet_image="assets/Weapons/bullet.png", damage= PISTOL_DAMAGE)
 
 class ShotgunBullet(Bullet):
     COOLDOWN = 30
@@ -78,7 +77,7 @@ class ShotgunBullet(Bullet):
 class AK47Bullet(Bullet):
     COOLDOWN = 10
     def __init__(self, x, y, angle):
-        super().__init__(x, y, angle, speed=12, lifetime=1500, scale=1, bullet_image="assets/Weapons/bullet.png", damage= AK47_DAMAGE)
+        super().__init__(x, y, angle, speed= AK47_SPEED, lifetime= AK47_LIFETIME, scale=1, bullet_image="assets/Weapons/bullet.png", damage= AK47_DAMAGE)
 
 class Hero(pygame.sprite.Sprite):
     def __init__(self, x, y, game_map):
@@ -88,9 +87,11 @@ class Hero(pygame.sprite.Sprite):
         self.damage = DAMAGE
         self.speed = PLAYER_SPEED
         self.base_player_image = pygame.transform.rotozoom(pygame.image.load("assets/Hero/Hero.png").convert_alpha(), 0, PLAYER_SIZE)
+        
         self.image = self.base_player_image
         self.pos = pygame.math.Vector2(x, y)
         self.rect = self.image.get_rect(center=self.pos)
+        
         self.hitbox_rect = self.rect.copy()
         self.shoot = False
         self.shoot_cooldown = 0
@@ -103,14 +104,16 @@ class Hero(pygame.sprite.Sprite):
             2: pygame.image.load("assets/Weapons/AK.png").convert_alpha(),
             3: pygame.image.load("assets/Weapons/Shotgun1.png").convert_alpha(),
         }
+
         self.current_gun = 1
+        
         self.angle = 0
         self.update_gun_image()
         self.load_sounds()
+        
         self.last_damage_time = 0
         self.damage_cooldown = 1000
         
-        # Добавлено: направление взгляда персонажа
         self.facing_right = True
 
     def load_sounds(self):
@@ -152,10 +155,10 @@ class Hero(pygame.sprite.Sprite):
             self.velocity_y = self.speed
         if keys[pygame.K_d]:
             self.velocity_x = self.speed
-            self.facing_right = True  # Персонаж смотрит вправо
+            self.facing_right = True  
         if keys[pygame.K_a]:
             self.velocity_x = -self.speed
-            self.facing_right = False  # Персонаж смотрит влево
+            self.facing_right = False  
 
         if self.velocity_x != 0 and self.velocity_y != 0: 
             self.velocity_x /= math.sqrt(2)
@@ -243,11 +246,9 @@ class Hero(pygame.sprite.Sprite):
         bullet_group.update(game_map.collision_objects)
 
     def draw(self, screen, camera):
-        # Отражаем спрайт персонажа если нужно
         player_image = self.base_player_image if self.facing_right else pygame.transform.flip(self.base_player_image, True, False)
         screen.blit(player_image, self.rect.topleft - pygame.Vector2(camera.x, camera.y))
         
-        # Оружие рисуется как было (оно поворачивается отдельно)
         gun_pos = self.gun_rect.topleft - pygame.Vector2(camera.x, camera.y)
         screen.blit(self.gun_image, gun_pos)
 
@@ -339,20 +340,25 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
         self.target = target
         self.pos = pygame.math.Vector2(x, y)
+        
         self.speed = speed
         self.animation_speed = animation_speed
+        
         self.animation_counter = 0
         self.facing_right = True
         self.current_frame = 0
         self.setup_frames()
         self.image = self.right_frames[self.current_frame]
         self.rect = self.image.get_rect(center=(x, y))
+
         self.collision_radius = 50  
         self.is_colliding = False
         self.last_facing = True  
+
         self.damage = ENEMY_DAMAGE
         self.max_health = max_health
         self.health = max_health
+
         self.last_hit_time = 0
         self.hit_cooldown = 500  
 
@@ -386,7 +392,7 @@ class Enemy(pygame.sprite.Sprite):
         return (left <= new_pos.x <= right and top <= new_pos.y <= bottom)
 
     def take_damage(self, amount):
-        if self.is_dead:  # Already dead, don't process again
+        if self.is_dead:  
             return False
             
         current_time = pygame.time.get_ticks()
@@ -399,7 +405,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.health = 0
                 self.is_dead = True
                 self.setup_death_frames()
-                return True  # Signal that enemy died
+                return True  
         return False
 
     def setup_death_frames(self):
@@ -419,13 +425,11 @@ class Enemy(pygame.sprite.Sprite):
                     else:
                         self.image = self.right_frames[self.current_frame] if self.last_facing else self.left_frames[self.current_frame]
 
-                    # Only check bullet collisions when active
                     for bullet in bullet_group:
                         if self.rect.colliderect(bullet.rect):
                             self.take_damage(bullet.damage)
                             bullet.kill()
                 else:
-                    # When not active, show idle frame
                     self.image = self.right_frames[0] if self.facing_right else self.left_frames[0]
             else:
                 self.death_animation_counter += self.death_animation_speed
@@ -462,8 +466,7 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.right_frames[self.current_frame] if self.facing_right else self.left_frames[self.current_frame]
 
     def move_towards_target(self):
-   
-        if not self.is_colliding and self.is_active:  # Only move if active
+           if not self.is_colliding and self.is_active:  
             direction = self.target.pos - self.pos
             distance = direction.length()
             if distance != 0:
@@ -485,7 +488,7 @@ class Enemy(pygame.sprite.Sprite):
 
 class Witch(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.02 , max_health=BOSS1_HP)
+        super().__init__(x, y, target, speed= WITCH_SPEED, animation_speed=0.02 , max_health= WITCH_HP)
         
     def setup_frames(self):
         original_frames = [
@@ -494,6 +497,7 @@ class Witch(Enemy):
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
+
     def setup_death_frames(self):
         self.death_animation_frames = [
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Witch/D0.png").convert_alpha(), 0, ENEMY_SIZE_2),
@@ -508,7 +512,7 @@ class Witch(Enemy):
 
 class Skeleton1(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.04 , max_health=BOSS1_HP)
+        super().__init__(x, y, target, speed= SKELETON_SPEED, animation_speed=0.04 , max_health= SKELETON_HP)
         self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
         
     def setup_frames(self):
@@ -527,6 +531,7 @@ class Skeleton1(Enemy):
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
+
     def setup_death_frames(self):
         self.death_animation_frames = [
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton1/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
@@ -540,7 +545,7 @@ class Skeleton1(Enemy):
 
 class Skeleton2(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.04 , max_health=BOSS1_HP)
+        super().__init__(x, y, target, speed= SKELETON_SPEED, animation_speed=0.04 , max_health= SKELETON_HP)
         self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
         
     def setup_frames(self):
@@ -554,6 +559,7 @@ class Skeleton2(Enemy):
         ]
         self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
         self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
+
     def setup_death_frames(self):
         self.death_animation_frames = [
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton2/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
@@ -563,10 +569,62 @@ class Skeleton2(Enemy):
 
         ]
         self.image = self.death_animation_frames[0]
+        
+class Skeleton3(Enemy):
+    def __init__(self, x, y, target):
+        super().__init__(x, y, target, speed= SKELETON_SPEED, animation_speed=0.035 , max_health= SKELETON_HP)
+        self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
+        
+    def setup_frames(self):
+        original_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
+        ]
+        self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
+        self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
+
+    def setup_death_frames(self):
+        self.death_animation_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+        ]
+        self.image = self.death_animation_frames[0]
+        
+class Skeleton4(Enemy):
+    def __init__(self, x, y, target):
+        super().__init__(x, y, target, speed= SKELETON_SPEED, animation_speed=0.02 , max_health=SKELETON_HP)
+        self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
+        
+    def setup_frames(self):
+        original_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
+        ]
+        self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
+        self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
+
+    def setup_death_frames(self):
+        self.death_animation_frames = [
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
+            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
+        ]
+        self.image = self.death_animation_frames[0]
 
 class Boss(Enemy):
     def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=2.0, animation_speed=0.035, max_health=BOSS3_HP)
+        super().__init__(x, y, target, speed= BOSS_SPEED, animation_speed=0.035, max_health= BOSS_HP)
         
     def setup_frames(self):
         original_frames = [
@@ -596,56 +654,6 @@ class Boss(Enemy):
             pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Boss/Bringer-of-Death_Death_10.png").convert_alpha(), 0, ENEMY_SIZE_2)
         ]
         self.image = self.death_animation_frames[0]
-        
-class Skeleton3(Enemy):
-    def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.035 , max_health=BOSS1_HP)
-        self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
-        
-    def setup_frames(self):
-        original_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
-        ]
-        self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
-        self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
-    def setup_death_frames(self):
-        self.death_animation_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton3/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
-        ]
-        self.image = self.death_animation_frames[0]
-        
-class Skeleton4(Enemy):
-    def __init__(self, x, y, target):
-        super().__init__(x, y, target, speed=1.5, animation_speed=0.02 , max_health=BOSS1_HP)
-        self.damage_sound = pygame.mixer.Sound("assets/Enemies/death-15.mp3")
-        
-    def setup_frames(self):
-        original_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-1.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-2.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-3.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-4.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-5.png").convert_alpha(), 0, ENEMY_SIZE),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/walk-6.png").convert_alpha(), 0, ENEMY_SIZE),
-        ]
-        self.right_frames = [pygame.transform.rotozoom(frame, 0, ENEMY_SIZE) for frame in original_frames]
-        self.left_frames = [pygame.transform.flip(frame, True, False) for frame in self.right_frames]
-    def setup_death_frames(self):
-        self.death_animation_frames = [
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-1.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-2.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-3.png").convert_alpha(), 0, ENEMY_SIZE_2),
-            pygame.transform.rotozoom(pygame.image.load("assets/Enemies/Skeleton4/dead-4.png").convert_alpha(), 0, ENEMY_SIZE_2),
-        ]
-        self.image = self.death_animation_frames[0]
 
 class Laser(pygame.sprite.Sprite):
     def __init__(self, owner, target, length=250, duration=2.5):
@@ -660,7 +668,6 @@ class Laser(pygame.sprite.Sprite):
         self.damage_cooldown = 50
         self.width = 8
         
-        # Анимационные параметры
         self.current_length = 0
         self.growing_speed = 20
         self.angle = 0
@@ -670,39 +677,30 @@ class Laser(pygame.sprite.Sprite):
         self.update_direction()
 
     def update_direction(self):
-        # Рассчитываем направление к цели
         dx = self.target.pos.x - self.owner.rect.centerx
         dy = self.target.pos.y - self.owner.rect.centery
         self.angle = math.degrees(math.atan2(-dy, dx))
         
-        # Плавное увеличение длины
         if self.current_length < self.length:
             self.current_length = min(self.current_length + self.growing_speed, self.length)
-        
-        # Создаем изображение луча
+
         self.original_image = pygame.Surface((self.current_length, self.width), pygame.SRCALPHA)
         
-        # Рисуем градиент (от яркого у глаза к тусклому на конце)
         for i in range(int(self.current_length)):
             alpha = int(255 * (1 - i/self.current_length)**0.5)
             color = (255, 50, 50, alpha)
             pygame.draw.line(self.original_image, color, (i, 0), (i, self.width), 1)
         
-        # Яркое основание
         pygame.draw.rect(self.original_image, (255, 100, 100, 255), (0, 0, 15, self.width))
         
-        # Поворачиваем изображение
         self.image = pygame.transform.rotate(self.original_image, self.angle)
         self.rect = self.image.get_rect()
         
-        # Ключевое изменение: позиционируем луч так, чтобы он начинался из центра глаза
         direction = pygame.math.Vector2(1, 0).rotate(-self.angle)
         start_pos = pygame.math.Vector2(self.owner.rect.centerx, self.owner.rect.centery)
         
-        # Устанавливаем позицию лазера (начало + половина длины в направлении луча)
         self.rect.center = start_pos + direction * self.current_length / 2
         
-        # Обновляем маску
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
@@ -874,8 +872,8 @@ class Cat(pygame.sprite.Sprite):
     def __init__(self, x, y, game):
         super().__init__()
         self.game = game
-        self.world_pos = pygame.math.Vector2(x, y)  # World position
-        self.screen_pos = pygame.math.Vector2(x, y)  # Screen position (will be updated)
+        self.world_pos = pygame.math.Vector2(x, y)  
+        self.screen_pos = pygame.math.Vector2(x, y)  
         self.load_frames()
         self.current_frame = 0
         self.animation_speed = 0.1
@@ -885,10 +883,10 @@ class Cat(pygame.sprite.Sprite):
         
     def load_frames(self):
         self.frames = []
-        for i in range(1, 5):  # cat1.png to cat4.png
+        for i in range(1, 5):  
             try:
                 frame = pygame.image.load(f"assets/Cat/Box{i}.png").convert_alpha()
-                frame = pygame.transform.scale(frame, (50, 50))  # Adjust size as needed
+                frame = pygame.transform.scale(frame, (50, 50))  
                 self.frames.append(frame)
             except:
                 fallback = pygame.Surface((50, 50), pygame.SRCALPHA)
@@ -896,14 +894,12 @@ class Cat(pygame.sprite.Sprite):
                 self.frames.append(fallback)
     
     def update(self, camera):
-        # Update animation
         self.animation_counter += self.animation_speed
         if self.animation_counter >= 1:
             self.animation_counter = 0
             self.current_frame = (self.current_frame + 1) % len(self.frames)
             self.image = self.frames[self.current_frame]
         
-        # Update screen position based on camera
         self.screen_pos.x = self.world_pos.x - camera.x
         self.screen_pos.y = self.world_pos.y - camera.y
         self.rect.center = self.screen_pos
@@ -911,14 +907,11 @@ class Cat(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
         
-        # Calculate remaining enemies more reliably
         if hasattr(self.game, 'enemies_killed') and hasattr(self.game, 'total_enemies'):
-            # Count active enemies that aren't dead yet
             active_enemies = sum(1 for enemy in enemy_group if not enemy.is_dead)
             counter_text = self.game.font.render(f"Enemies left: {active_enemies}", True, (255, 255, 255))
             text_rect = counter_text.get_rect(midleft=(self.rect.right + 10, self.rect.centery))
             
-            # Draw background for text
             pygame.draw.rect(screen, (0, 0, 0), 
                         (text_rect.x - 5, text_rect.y - 5, 
                             text_rect.width + 10, text_rect.height + 10))

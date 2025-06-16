@@ -17,11 +17,9 @@ class Game:
         self.font = pygame.font.Font('freesansbold.ttf', 18)
         self.big_font = pygame.font.Font('freesansbold.ttf', 30)
 
-        # Музыка меню
         pygame.mixer.music.load('assets/Menu/MenuTrack.ogg')
         pygame.mixer.music.set_volume(0.5)
         
-        # Музыка босса
         self.boss_music = pygame.mixer.Sound('assets/Music/08 Red Sun (Maniac Agenda Mix).mp3')  
         self.boss_music.set_volume(0.5)
 
@@ -47,7 +45,7 @@ class Game:
 
 
         self.heart_image = pygame.image.load('assets/Hero/Untitled 06-08-2025 08-30-35.png').convert_alpha()
-        self.heart_image = pygame.transform.scale(self.heart_image, (32, 32))  # Подгоните под нужный размер
+        self.heart_image = pygame.transform.scale(self.heart_image, (32, 32))  
 
 
     def init_boss_level(self):
@@ -151,12 +149,11 @@ class Game:
     def run_game(self):
         if self.player.is_dead() and not self.game_over:
             self.game_over = True
-            # Clear all groups
+
             bullet_group.empty()
             enemy_group.empty()
             all_sprites_group.empty()
             
-            # Music handling
             if self.boss_level:
                 self.boss_music.stop()
                 self.boss_level = False
@@ -174,11 +171,10 @@ class Game:
             for enemy in enemy_group:
                 for bullet in bullet_group:
                     if bullet.rect.colliderect(enemy.rect):
-                        if enemy.take_damage(bullet.damage):  # Returns True if enemy died
+                        if enemy.take_damage(bullet.damage):  
                             self.enemies_killed += 1
                         bullet.kill()
                         break 
-            # Проверка столкновений снарядов круговой атаки с игроком
             for enemy in enemy_group:
                 if isinstance(enemy, EYEBOSS):
                     for shot in enemy.shots:
@@ -186,10 +182,8 @@ class Game:
                             self.player.take_damage(shot.damage)
                             shot.kill()
             
-            # Проверка столкновений с лазером
             for enemy in enemy_group:
                 if isinstance(enemy, EYEBOSS) and enemy.laser:
-                    # Получаем глобальные координаты лазера с учетом камеры
                     laser_rect = pygame.Rect(
                         enemy.laser.rect.x - self.camera.camera.x,
                         enemy.laser.rect.y - self.camera.camera.y,
@@ -197,82 +191,54 @@ class Game:
                         enemy.laser.rect.height
                     )
                     
-                    # Проверяем столкновение с игроком
                     if laser_rect.colliderect(self.player.hitbox_rect):
                         current_time = pygame.time.get_ticks()
-                        if current_time - enemy.laser.last_damage_time > 1000:  # Урон раз в секунду
+                        if current_time - enemy.laser.last_damage_time > 1000:  
                             self.player.take_damage(enemy.laser.damage)
                             enemy.laser.last_damage_time = current_time
             
-            # Отрисовка
             self.game_map.Draw(self.screen, self.camera.camera)
             
-            # Отрисовка пуль игрока
             for bullet in bullet_group:
                 bullet_pos = (bullet.rect.x - self.camera.camera.x, bullet.rect.y - self.camera.camera.y)
                 self.screen.blit(bullet.image, bullet_pos)
             
-            # Отрисовка игрока
             self.player.draw(self.screen, self.camera.camera)
             
-            # Обновление и отрисовка врагов
             enemy_group.update("game")
             
             for enemy in enemy_group:
-                # Отрисовка врага
                 self.screen.blit(enemy.image, (enemy.rect.x - self.camera.camera.x, enemy.rect.y - self.camera.camera.y))
                 
-                # Отрисовка снарядов врага и лазера
                 if isinstance(enemy, EYEBOSS):
-                    # Круговые снаряды
                     for shot in enemy.shots:
                         shot_pos = (shot.rect.x - self.camera.camera.x, shot.rect.y - self.camera.camera.y)
                         self.screen.blit(shot.image, shot_pos)
                     
-                    # Лазер
                     if enemy.laser:
                         laser_pos = (enemy.laser.rect.x - self.camera.camera.x, enemy.laser.rect.y - self.camera.camera.y)
                         self.screen.blit(enemy.laser.image, laser_pos)
             
-            # Отрисовка HUD
             self.draw_hearts()
 
             if not self.boss_level:
-                self.cat.update(self.camera.camera)  # Pass the camera to update screen position
+                self.cat.update(self.camera.camera)  
                 self.cat.draw(self.screen)
             
-            # Проверка завершения уровня
             if len(enemy_group) == 0 and self.menu.state == "game" and not self.boss_level_initialized:
                 self.menu.state = "waiting_for_boss"
                 self.enemies_killed = 0
-                # При завершении уровня босса вернуть музыку меню
                 if self.boss_level:
                     self.boss_music.stop()
                     pygame.mixer.music.play(-1)
 
-    # def draw_health_bar(self):
-    #     health_bar_width = 200
-    #     health_bar_height = 20
-    #     health_ratio = self.player.health / self.player.max_health
-    #     current_health_width = health_bar_width * health_ratio
-        
-    #     outline_rect = pygame.Rect(10, 725, health_bar_width, health_bar_height)
-    #     fill_rect = pygame.Rect(10, 725, current_health_width, health_bar_height)
-        
-    #     pygame.draw.rect(self.screen, (255, 0, 0), fill_rect)
-    #     pygame.draw.rect(self.screen, (255, 255, 255), outline_rect, 2)
-        
-    #     health_text = self.font.render(f"Health: {self.player.health}/{self.player.max_health}", True, (255, 255, 255))
-    #     self.screen.blit(health_text, (10, 700))
-
     def draw_hearts(self):
         for i in range(self.player.max_health):
-            x = 10 + i * 40  # Расстояние между сердцами
+            x = 10 + i * 40  
             y = 700
             if i < self.player.health:
                 self.screen.blit(self.heart_image, (x, y))
             else:
-                # Можно добавить полупрозрачное или серое сердце, если хочешь отображать "пустые"
                 dark_heart = self.heart_image.copy()
                 dark_heart.fill((100, 100, 100, 100), special_flags=pygame.BLEND_RGBA_MULT)
                 self.screen.blit(dark_heart, (x, y))
@@ -284,11 +250,9 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    # Allow pausing in both normal game and boss level
                     if event.key == pygame.K_ESCAPE and (self.menu.state == "game" or self.boss_level):
                         self.menu.state = "pause"
                     elif event.key == pygame.K_ESCAPE and self.menu.state == "pause":
-                        # Only unpause if we're actually in the game (not in waiting states)
                         if not self.menu.state in ["waiting_for_start", "waiting_for_boss"]:
                             self.menu.state = "game"
                             
@@ -298,7 +262,6 @@ class Game:
             if self.menu.state == "game":
                 self.run_game()
             
-            # Draw menu on top if not in game state
             if self.menu.state != "game":
                 self.menu.update()
 

@@ -153,7 +153,7 @@ class MenuManager:
                 self.game.init_game()  
 
         elif self.state == "waiting_for_boss":
-            self.game.screen.fill((0, 0, 255))  # Blue screen
+            self.game.screen.fill((0, 0, 255))  
             boss_text = self.game.big_font.render("Все враги побеждены! Готовьтесь к боссу!", True, 'white')
             continue_text = self.game.font.render("Нажмите Enter, чтобы продолжить", True, 'white')
             
@@ -162,8 +162,8 @@ class MenuManager:
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:
-                self.game.init_boss_level()  # Initialize boss level
-                self.state = "game"  # Switch to game state
+                self.game.init_boss_level()  
+                self.state = "game"  
 
         elif self.state == "pause":
             self.game.screen.blit(self.bg_main, (0, 0))
@@ -176,18 +176,15 @@ class MenuManager:
             if self.btn_resume.check_click(events):
                 self.state = "game"
             elif self.btn_main_menu.check_click(events) or self.btn_back.check_click(events):
-                # Clear all game state
                 bullet_group.empty()
                 enemy_group.empty()
                 all_sprites_group.empty()
                 
-                # Stop music if in boss level
                 if self.game.boss_level:
                     self.game.boss_music.stop()
                     self.game.boss_level = False
                     self.game.boss_level_initialized = False
                 
-                # Return to menu music
                 pygame.mixer.music.play(-1)
                 self.state = "main"
         
