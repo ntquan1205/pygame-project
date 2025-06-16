@@ -243,6 +243,28 @@ class Game:
                 dark_heart.fill((100, 100, 100, 100), special_flags=pygame.BLEND_RGBA_MULT)
                 self.screen.blit(dark_heart, (x, y))
 
+    def draw_boss_hp(self):
+        if not self.boss_level or not hasattr(self, 'eye_boss') or self.eye_boss.is_dead:
+            return
+
+        bar_width = 600
+        bar_height = 30
+        x = (self.WIDTH - bar_width) // 2
+        y = 20
+        
+        hp_percent = self.eye_boss.health / EYE_BOSS_HP
+
+        pygame.draw.rect(self.screen, (50, 50, 50), (x, y, bar_width, bar_height))
+        
+        if hp_percent < 0.3:
+            pulse = (math.sin(pygame.time.get_ticks() * 0.005) * 55 + 200)
+            health_color = (255, pulse, pulse)
+        else:
+            health_color = (255, 0, 0)
+        
+        pygame.draw.rect(self.screen, health_color, (x, y, bar_width * hp_percent, bar_height))
+        pygame.draw.rect(self.screen, (255, 255, 255), (x, y, bar_width, bar_height), 2)
+        
     def run(self):
         while True:
             for event in pygame.event.get():
@@ -265,5 +287,6 @@ class Game:
             if self.menu.state != "game":
                 self.menu.update()
 
+            self.draw_boss_hp()
             pygame.display.flip()
 
