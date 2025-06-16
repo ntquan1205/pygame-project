@@ -15,7 +15,7 @@ class Button:
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.game = game
-        self.rect = pygame.Rect((x_pos, y_pos), (150, 50))
+        self.rect = pygame.Rect((x_pos, y_pos), (250, 50))
 
     def draw(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -29,7 +29,7 @@ class Button:
         pygame.draw.rect(self.game.screen, color, self.rect, 0, 5)
         pygame.draw.rect(self.game.screen, 'black', self.rect, 2, 5)
         text = self.game.font.render(self.text, True, 'black')
-        self.game.screen.blit(text, (self.x_pos + 25, self.y_pos + 18))
+        self.game.screen.blit(text, (self.x_pos + 75, self.y_pos + 18))
 
     def check_click(self, events):
         for event in events:
@@ -44,28 +44,31 @@ class MenuManager:
         self.state = "main"
         self.volume = 0.5
 
-        self.bg_main = pygame.image.load('assets/Menu/Menu1.jpg')
-        self.bg_credits = pygame.image.load('assets/Menu/auth1.jpg').convert()
-        self.title_img = pygame.image.load('assets/Menu/Name.png')
+        self.bg_main = pygame.image.load('assets/Menu/test.png').convert()
+        self.bg_main = pygame.transform.scale(self.bg_main, (WIDTH, HEIGHT))
 
-        self.btn_about = Button('Об авторах', 100, 400, game)
-        self.btn_start = Button('Начать игру', 100, 300, game)
-        self.btn_settings = Button(' Настройки', 100, 500, game)
-        self.btn_exit = Button('   Выход', 100, 600, game)
-        self.btn_back = Button('    Назад', 65, 650, game)
-        self.btn_resume = Button('Продолжить', 100, 300, game)
-        self.btn_main_menu = Button('Главное меню', 100, 400, game)
+        self.bg_credits = pygame.image.load('assets/Menu/authors.png').convert()
+        self.bg_credits = pygame.transform.scale(self.bg_credits, (WIDTH, HEIGHT))
+        #self.title_img = pygame.image.load('assets/Menu/game_name.png')
+
+        self.btn_start = Button('Начать игру', WIDTH // 2.5, 325, game)
+        self.btn_about = Button('Об авторах', WIDTH // 2.5, 425, game)
+        self.btn_settings = Button(' Настройки', WIDTH // 2.5, 525, game)
+        self.btn_exit = Button('   Выход', WIDTH // 2.5, 625, game)
+        self.btn_back = Button('    Назад', 100, 650, game)
+        self.btn_resume = Button('Продолжить', WIDTH // 2.5, 375, game)
+        self.btn_main_menu = Button('Главное меню', WIDTH // 2.5, 475, game)
 
         self.screen_width = WIDTH
         self.screen_height = HEIGHT
 
-    def update_snow(self):
-        for snowflake in self.game.snow:
-            pygame.draw.circle(self.game.screen, 'white', snowflake, 2)
-            snowflake[1] += 1
-            if snowflake[1] > self.game.HEIGHT:
-                snowflake[1] = random.randrange(-50, -10)  
-                snowflake[0] = random.randrange(0, self.game.WIDTH)
+    # def update_snow(self):
+    #     for snowflake in self.game.snow:
+    #         pygame.draw.circle(self.game.screen, 'white', snowflake, 2)
+    #         snowflake[1] += 1
+    #         if snowflake[1] > self.game.HEIGHT:
+    #             snowflake[1] = random.randrange(-50, -10)  
+    #             snowflake[0] = random.randrange(0, self.game.WIDTH)
 
     def fade_menu(self):
         fade_surface = pygame.Surface((self.game.WIDTH, self.game.HEIGHT))
@@ -100,8 +103,8 @@ class MenuManager:
 
         if self.state == "main":
             self.game.screen.blit(self.bg_main, (0, 0))
-            self.game.screen.blit(self.title_img, (190, -10))
-            self.update_snow()
+            #self.game.screen.blit(self.title_img, (WIDTH // 4, HEIGHT // 5))
+            # self.update_snow()
             self.btn_about.draw()
             self.btn_start.draw()
             self.btn_settings.draw()
@@ -121,14 +124,14 @@ class MenuManager:
         elif self.state == "about":
             self.game.screen.blit(self.bg_credits, (0, 0))
             self.btn_back.draw()
-            self.update_snow()
+            # self.update_snow()
             if self.btn_back.check_click(events):
                 self.state = "main"
 
         elif self.state == "settings":
             self.game.screen.blit(self.bg_main, (0, 0))
-            self.game.screen.blit(self.title_img, (190, -10))
-            self.update_snow()
+            #self.game.screen.blit(self.title_img, (190, -10))
+            # self.update_snow()
             self.draw_volume_slider()
             self.btn_back.draw()
 
@@ -167,15 +170,15 @@ class MenuManager:
 
         elif self.state == "pause":
             self.game.screen.blit(self.bg_main, (0, 0))
-            self.game.screen.blit(self.title_img, (190, -10))
-            self.update_snow()
+            #self.game.screen.blit(self.title_img, (190, -10))
+            #self.update_snow()
             self.btn_resume.draw()
             self.btn_main_menu.draw()
-            self.btn_back.draw()
+            #self.btn_back.draw()
 
             if self.btn_resume.check_click(events):
                 self.state = "game"
-            elif self.btn_main_menu.check_click(events) or self.btn_back.check_click(events):
+            elif self.btn_main_menu.check_click(events):
                 bullet_group.empty()
                 enemy_group.empty()
                 all_sprites_group.empty()

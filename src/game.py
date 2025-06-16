@@ -10,7 +10,7 @@ class Game:
         pygame.init()
         self.WIDTH, self.HEIGHT = 1200, 750
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        pygame.display.set_caption('Buttons!')
+        pygame.display.set_caption('game')
 
         self.clock = pygame.time.Clock()
         self.fps = 60
