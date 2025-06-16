@@ -76,10 +76,16 @@ class Game:
         self.total_enemies = 9
 
     def init_game(self):
+        bullet_group.empty()
+        enemy_group.empty()
+        all_sprites_group.empty()
+
         self.game_over = False
         self.boss_level = False  
+
         self.game_map = Map("assets/Map/dungeon1.tmx")
         spawn_x, spawn_y = self.game_map.spawn_point
+
         self.player = Hero(spawn_x, spawn_y, self.game_map)
         self.cat = Cat(120, 750, self)
 
@@ -145,13 +151,19 @@ class Game:
     def run_game(self):
         if self.player.is_dead() and not self.game_over:
             self.game_over = True
-            self.menu.state = "main"
+            # Clear all groups
             bullet_group.empty()
             enemy_group.empty()
-            # При возврате в меню остановить музыку босса и включить музыку меню
+            all_sprites_group.empty()
+            
+            # Music handling
             if self.boss_level:
                 self.boss_music.stop()
-                pygame.mixer.music.play(-1)
+                self.boss_level = False
+                self.boss_level_initialized = False
+            pygame.mixer.music.play(-1)
+            
+            self.menu.state = "main"
             return
             
         if not self.game_over:
@@ -265,13 +277,17 @@ class Game:
                 dark_heart.fill((100, 100, 100, 100), special_flags=pygame.BLEND_RGBA_MULT)
                 self.screen.blit(dark_heart, (x, y))
 
-
     def run(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE and self.menu.state == "game":
+                        self.menu.state = "pause"
+                    elif event.key == pygame.K_ESCAPE and self.menu.state == "pause":
+                        self.menu.state = "game"
 
             self.clock.tick(self.fps)
             self.screen.fill((0, 0, 0)) 
@@ -282,3 +298,4 @@ class Game:
                 self.menu.update()
 
             pygame.display.flip()
+

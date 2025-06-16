@@ -53,6 +53,8 @@ class MenuManager:
         self.btn_settings = Button(' Настройки', 100, 500, game)
         self.btn_exit = Button('   Выход', 100, 600, game)
         self.btn_back = Button('    Назад', 65, 650, game)
+        self.btn_resume = Button('Продолжить', 100, 300, game)
+        self.btn_main_menu = Button('Главное меню', 100, 400, game)
 
         self.screen_width = WIDTH
         self.screen_height = HEIGHT
@@ -162,6 +164,32 @@ class MenuManager:
             if keys[pygame.K_RETURN]:
                 self.game.init_boss_level()  # Initialize boss level
                 self.state = "game"  # Switch to game state
+
+        elif self.state == "pause":
+            self.game.screen.blit(self.bg_main, (0, 0))
+            self.game.screen.blit(self.title_img, (190, -10))
+            self.update_snow()
+            self.btn_resume.draw()
+            self.btn_main_menu.draw()
+            self.btn_back.draw()
+
+            if self.btn_resume.check_click(events):
+                self.state = "game"
+            elif self.btn_main_menu.check_click(events) or self.btn_back.check_click(events):
+                # Clear all game state
+                bullet_group.empty()
+                enemy_group.empty()
+                all_sprites_group.empty()
+                
+                # Stop music if in boss level
+                if self.game.boss_level:
+                    self.game.boss_music.stop()
+                    self.game.boss_level = False
+                    self.game.boss_level_initialized = False
+                
+                # Return to menu music
+                pygame.mixer.music.play(-1)
+                self.state = "main"
         
     def draw_volume_slider(self):
         pygame.draw.rect(self.game.screen, 'lightgrey', (400, 350, 400, 10))
@@ -169,3 +197,4 @@ class MenuManager:
         vol_text = self.game.big_font.render(f'Громкость: {int(self.volume * 100)}%', True, 'black')
         pygame.draw.rect(self.game.screen, 'lightgrey', (140, 330, 250, 50))
         self.game.screen.blit(vol_text, (150, 345))
+        
