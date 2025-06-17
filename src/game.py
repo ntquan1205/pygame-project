@@ -150,7 +150,6 @@ class Game:
     def run_game(self):
         if self.player.is_dead() and not self.game_over:
             self.game_over = True
-
             bullet_group.empty()
             enemy_group.empty()
             all_sprites_group.empty()
@@ -161,8 +160,9 @@ class Game:
                 self.boss_level_initialized = False
             pygame.mixer.music.play(-1)
             
-            self.menu.state = "main"
+            self.menu.state = "game_over"  
             return
+
             
         if not self.game_over:
             self.player.update(self.game_map)
@@ -276,7 +276,7 @@ class Game:
                     if event.key == pygame.K_ESCAPE and (self.menu.state == "game" or self.boss_level):
                         self.menu.state = "pause"
                     elif event.key == pygame.K_ESCAPE and self.menu.state == "pause":
-                        if not self.menu.state in ["waiting_for_start", "waiting_for_boss"]:
+                        if not self.menu.state in ["waiting_for_start", "waiting_for_boss", "game_over"]:  
                             self.menu.state = "game"
                             
             self.clock.tick(self.fps)

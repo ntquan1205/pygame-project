@@ -61,6 +61,8 @@ class MenuManager:
         self.screen_width = WIDTH
         self.screen_height = HEIGHT
 
+        self.btn_retry = Button('Попробовать снова', WIDTH // 2.5, 425, game)
+
     def fade_menu(self):
         fade_surface = pygame.Surface((self.game.WIDTH, self.game.HEIGHT))
         fade_surface.fill((0, 0, 0))
@@ -163,6 +165,28 @@ class MenuManager:
             if self.btn_resume.check_click(events):
                 self.state = "game"
             elif self.btn_main_menu.check_click(events):
+                bullet_group.empty()
+                enemy_group.empty()
+                all_sprites_group.empty()
+                
+                if self.game.boss_level:
+                    self.game.boss_music.stop()
+                    self.game.boss_level = False
+                    self.game.boss_level_initialized = False
+                
+                pygame.mixer.music.play(-1)
+                self.state = "main"
+
+        elif self.state == "game_over":
+            self.game.screen.fill((0, 0, 0))
+            game_over_text = self.game.big_font.render("Игра Окончена!", True, 'red')
+            continue_text = self.game.font.render("Нажмите Enter, чтобы вернуться в меню", True, 'white')
+            
+            self.game.screen.blit(game_over_text, (self.game.WIDTH // 2 - game_over_text.get_width() // 2, self.game.HEIGHT // 2 - 100))
+            self.game.screen.blit(continue_text, (self.game.WIDTH // 2 - continue_text.get_width() // 2, self.game.HEIGHT // 2 + 100))
+            
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RETURN]:
                 bullet_group.empty()
                 enemy_group.empty()
                 all_sprites_group.empty()
