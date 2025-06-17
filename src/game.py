@@ -45,7 +45,7 @@ class Game:
         self.boss_level_initialized = False 
 
         self.enemies_killed = 0
-        self.total_enemies = 9
+        self.total_enemies = 30
 
         self.game_start_time = 0
         self.game_end_time = 0
@@ -100,7 +100,7 @@ class Game:
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
         self.enemies_killed = 0
-        self.total_enemies = 9
+        self.total_enemies = 30
 
     def init_game(self):
         bullet_group.empty()
@@ -119,15 +119,15 @@ class Game:
         self.player = Hero(spawn_x, spawn_y, self.game_map)
         self.cat = Cat(120, 750, self)
 
-        self.enemy_1 = Skeleton2(400, 1100, self.player)
+        self.enemy_1 = Skeleton2(400, 1150, self.player)
         self.enemy_1.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_1)
 
-        self.enemy_2 = Skeleton1(600, 1100, self.player)
+        self.enemy_2 = Skeleton1(600, 1200, self.player)
         self.enemy_2.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_2)
 
-        self.enemy_3 = Skeleton3(800, 1100, self.player)
+        self.enemy_3 = Skeleton3(800, 1050, self.player)
         self.enemy_3.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_3)
 
@@ -135,7 +135,7 @@ class Game:
         self.enemy_4.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_4)
 
-        self.enemy_boss_5 = Boss(1200, 1100, self.player)
+        self.enemy_boss_5 = Boss(1200, 1150, self.player)
         self.enemy_boss_5.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_boss_5)
 
@@ -147,13 +147,100 @@ class Game:
         self.enemy_7.set_room_boundaries(20, 1350, 440, 1560) #Room 1
         enemy_group.add(self.enemy_7)
 
-        self.enemy_8 = Skeleton3(1400, 1500, self.player)
+        self.enemy_8 = Skeleton3(1200, 1450, self.player)
         self.enemy_8.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
         enemy_group.add(self.enemy_8)
 
-        self.enemy_9 = Skeleton4(1500, 1500, self.player)
+        self.enemy_9 = Skeleton4(1300, 1500, self.player)
         self.enemy_9.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
         enemy_group.add(self.enemy_9)
+
+        self.enemy_10 = Skeleton1(1400, 1400, self.player)
+        self.enemy_10.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
+        enemy_group.add(self.enemy_10)
+        
+        self.enemy_11 = Skeleton2(1300, 1400, self.player)
+        self.enemy_11.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
+        enemy_group.add(self.enemy_11)
+
+        self.enemy_12 = Skeleton2(1000, 200, self.player)
+        self.enemy_12.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_12)
+        
+        self.enemy_13 = Skeleton3(1300, 200, self.player)
+        self.enemy_13.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_13)
+
+        self.enemy_14 = Skeleton4(1000, 200, self.player)
+        self.enemy_14.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_14)
+
+        self.enemy_15 = Skeleton2(1470, 1120, self.player)
+        self.enemy_15.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_15)
+
+        self.enemy_16 = Skeleton1(700, 1130, self.player)
+        self.enemy_16.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_16)
+
+        self.enemy_17 = Skeleton3(900, 1150, self.player)
+        self.enemy_17.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_17)
+
+        self.enemy_18 = Skeleton4(1500, 1100, self.player)
+        self.enemy_18.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
+        enemy_group.add(self.enemy_18)
+
+        self.enemy_19 = Skeleton3(400, 1430, self.player)
+        self.enemy_19.set_room_boundaries(20, 1350, 440, 1560) #Room 1
+        enemy_group.add(self.enemy_19)
+
+        self.enemy_20 = Skeleton4(60, 1380, self.player)
+        self.enemy_20.set_room_boundaries(20, 1350, 440, 1560) #Room 1
+        enemy_group.add(self.enemy_20)
+
+
+        self.enemy_boss_21 = Skeleton1(1000, 750, self.player)
+        self.enemy_boss_21.set_room_boundaries(900, 700, 1600, 900) #Room 6
+        enemy_group.add(self.enemy_boss_21)
+
+        self.enemy_boss_22 = Skeleton2(1000, 800, self.player)
+        self.enemy_boss_22.set_room_boundaries(900, 700, 1600, 900) #Room 6
+        enemy_group.add(self.enemy_boss_22)
+
+        self.enemy_boss_23 = Skeleton3(1300, 820, self.player)
+        self.enemy_boss_23.set_room_boundaries(900, 700, 1600, 900) #Room 6
+        enemy_group.add(self.enemy_boss_23)
+
+        self.enemy_boss_24 = Skeleton4(1200, 750, self.player)
+        self.enemy_boss_24.set_room_boundaries(900, 700, 1600, 900) #Room 6
+        enemy_group.add(self.enemy_boss_24)
+
+        self.enemy_25 = Skeleton2(600, 140, self.player)
+        self.enemy_25.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_25)
+        
+        self.enemy_26 = Witch(750, 200, self.player)
+        self.enemy_26.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_26)
+
+        self.enemy_27 = Boss(890, 320, self.player)
+        self.enemy_27.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_27)
+
+        self.enemy_28 = Skeleton1(680, 120, self.player)
+        self.enemy_28.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_28)
+        
+        self.enemy_29 = Skeleton3(1080, 270, self.player)
+        self.enemy_29.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_29)
+
+        self.enemy_30 = Boss(1420, 220, self.player)
+        self.enemy_30.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
+        enemy_group.add(self.enemy_30)
+    
+    
         
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
 
