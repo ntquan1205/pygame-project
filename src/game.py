@@ -56,6 +56,7 @@ class Game:
         
         pygame.mixer.music.stop()
         self.boss_music.play(-1)  
+        self.boss_music.set_volume(self.menu.volume)
         
         self.game_map = Map("assets/Map/dungeon2BOSS.tmx")
         

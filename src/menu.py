@@ -49,7 +49,6 @@ class MenuManager:
 
         self.bg_credits = pygame.image.load('assets/Menu/authors.png').convert()
         self.bg_credits = pygame.transform.scale(self.bg_credits, (WIDTH, HEIGHT))
-        #self.title_img = pygame.image.load('assets/Menu/game_name.png')
 
         self.btn_start = Button('Начать игру', WIDTH // 2.5, 325, game)
         self.btn_about = Button('Об авторах', WIDTH // 2.5, 425, game)
@@ -61,14 +60,6 @@ class MenuManager:
 
         self.screen_width = WIDTH
         self.screen_height = HEIGHT
-
-    # def update_snow(self):
-    #     for snowflake in self.game.snow:
-    #         pygame.draw.circle(self.game.screen, 'white', snowflake, 2)
-    #         snowflake[1] += 1
-    #         if snowflake[1] > self.game.HEIGHT:
-    #             snowflake[1] = random.randrange(-50, -10)  
-    #             snowflake[0] = random.randrange(0, self.game.WIDTH)
 
     def fade_menu(self):
         fade_surface = pygame.Surface((self.game.WIDTH, self.game.HEIGHT))
@@ -103,8 +94,6 @@ class MenuManager:
 
         if self.state == "main":
             self.game.screen.blit(self.bg_main, (0, 0))
-            #self.game.screen.blit(self.title_img, (WIDTH // 4, HEIGHT // 5))
-            # self.update_snow()
             self.btn_about.draw()
             self.btn_start.draw()
             self.btn_settings.draw()
@@ -124,14 +113,11 @@ class MenuManager:
         elif self.state == "about":
             self.game.screen.blit(self.bg_credits, (0, 0))
             self.btn_back.draw()
-            # self.update_snow()
             if self.btn_back.check_click(events):
                 self.state = "main"
 
         elif self.state == "settings":
             self.game.screen.blit(self.bg_main, (0, 0))
-            #self.game.screen.blit(self.title_img, (190, -10))
-            # self.update_snow()
             self.draw_volume_slider()
             self.btn_back.draw()
 
@@ -170,11 +156,9 @@ class MenuManager:
 
         elif self.state == "pause":
             self.game.screen.blit(self.bg_main, (0, 0))
-            #self.game.screen.blit(self.title_img, (190, -10))
-            #self.update_snow()
+
             self.btn_resume.draw()
             self.btn_main_menu.draw()
-            #self.btn_back.draw()
 
             if self.btn_resume.check_click(events):
                 self.state = "game"
@@ -210,7 +194,7 @@ class MenuManager:
         if hasattr(self, 'dragging_volume'):
             new_volume = (mouse_pos[0] - 400) / 400
             self.volume = max(0, min(1, new_volume))  
-            
+
             pygame.mixer.music.set_volume(self.volume)
             self.game.boss_music.set_volume(self.volume)
         
