@@ -1,9 +1,13 @@
 import pygame
+import os
 import random
 import sys  
+import time
+import math
 from menu import *
 from characters import *
 from settings import *
+
 
 class Game:
     def __init__(self):
@@ -43,10 +47,34 @@ class Game:
         self.enemies_killed = 0
         self.total_enemies = 9
 
+        self.game_start_time = 0
+        self.game_end_time = 0
+        self.pause_start_time = 0
+        self.total_pause_time = 0
+        self.current_record = 0
+        self.if_current_record_exist = True
+
+        self.load_record()
 
         self.heart_image = pygame.image.load('assets/Hero/Untitled 06-08-2025 08-30-35.png').convert_alpha()
         self.heart_image = pygame.transform.scale(self.heart_image, (32, 32))  
 
+    def load_record(self):
+        if os.path.exists("src/record.txt") and os.path.getsize("src/record.txt") > 0:
+            with open('src/record.txt', 'r', encoding='utf-8') as file:
+                self.current_record = float(file.read().strip())
+        else:
+            self.current_record = 100000000000000
+            self.if_current_record_exist = False
+            
+
+    def save_record_if_better(self, new_time):
+        if new_time < self.current_record:
+            with open('src/record.txt', 'w', encoding='utf-8') as file:
+                file.write(f"{new_time:.2f}")
+            self.current_record = new_time
+            return True
+        return False
 
     def init_boss_level(self):
         self.boss_level = True
@@ -81,6 +109,9 @@ class Game:
 
         self.game_over = False
         self.boss_level = False  
+        self.boss_level_initialized = False
+        self.total_pause_time = 0  
+        self.game_end_time = 0  
 
         self.game_map = Map("assets/Map/dungeon1.tmx")
         spawn_x, spawn_y = self.game_map.spawn_point
@@ -88,14 +119,6 @@ class Game:
         self.player = Hero(spawn_x, spawn_y, self.game_map)
         self.cat = Cat(120, 750, self)
 
-        #self.enemy_boss = Witch(1000, 200, self.player)
-        #self.enemy_boss.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
-        #enemy_group.add(self.enemy_boss)
-        
-        #self.enemy_boss_6 = Boss4(1300, 200, self.player)
-        #self.enemy_boss_6.set_room_boundaries(530, 90, 1540, 380) #Large Room 4
-        #enemy_group.add(self.enemy_boss_6)
-    
         self.enemy_1 = Skeleton2(400, 1100, self.player)
         self.enemy_1.set_room_boundaries(200, 1000, 1600, 1300) #Large Room 2
         enemy_group.add(self.enemy_1)
@@ -132,20 +155,9 @@ class Game:
         self.enemy_9.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
         enemy_group.add(self.enemy_9)
         
-    
-        #self.enemy_boss_4 = Boss2(1250, 750, self.player)
-        #self.enemy_boss_4.set_room_boundaries(900, 700, 1600, 900) #Room 6
-        #enemy_group.add(self.enemy_boss_4)
-    
-        #self.enemy_boss_5 = Boss5(1400, 1500, self.player)
-        #self.enemy_boss_5.set_room_boundaries(1160, 1350, 1600, 1560) #Room 3
-        #enemy_group.add(self.enemy_boss_5)
-    
-        #self.enemy_boss_6 = Boss2(200, 750, self.player)
-        #self.enemy_boss_6.set_room_boundaries(150, 700, 250, 800)
-        #enemy_group.add(self.enemy_boss_6)
-
         self.camera = Camera(self.WIDTH, self.HEIGHT, self.game_map.map_width, self.game_map.map_height)
+
+        self.game_start_time = time.time()
 
     def run_game(self):
         if self.player.is_dead() and not self.game_over:
@@ -159,10 +171,9 @@ class Game:
                 self.boss_level = False
                 self.boss_level_initialized = False
             pygame.mixer.music.play(-1)
-            
+
             self.menu.state = "game_over"  
             return
-
             
         if not self.game_over:
             self.player.update(self.game_map)
@@ -221,10 +232,18 @@ class Game:
                         self.screen.blit(enemy.laser.image, laser_pos)
             
             self.draw_hearts()
+            self.draw_game_time()
 
             if not self.boss_level:
                 self.cat.update(self.camera.camera)  
                 self.cat.draw(self.screen)
+            
+            if self.boss_level and hasattr(self, 'eye_boss') and self.eye_boss.health <= 0 and self.game_end_time == 0:
+                self.game_end_time = time.time()
+                total_time = self.game_end_time - self.game_start_time - self.total_pause_time
+                
+                if total_time < self.current_record:
+                    self.save_record_if_better(total_time)
             
             if len(enemy_group) == 0 and self.menu.state == "game" and not self.boss_level_initialized:
                 self.menu.state = "waiting_for_boss"
@@ -243,6 +262,26 @@ class Game:
                 dark_heart = self.heart_image.copy()
                 dark_heart.fill((100, 100, 100, 100), special_flags=pygame.BLEND_RGBA_MULT)
                 self.screen.blit(dark_heart, (x, y))
+
+    def draw_game_time(self):
+        if self.game_start_time == 0:
+            return
+            
+        current_time = time.time()
+        
+        if self.game_end_time > 0:
+            game_time = self.game_end_time - self.game_start_time - self.total_pause_time
+            time_text = f"Time: {game_time:.1f}s (Final)"
+        else: 
+            game_time = current_time - self.game_start_time - self.total_pause_time
+            time_text = f"Time: {game_time:.1f}s"
+            
+
+            if self.current_record > 0 and self.if_current_record_exist == True:
+                time_text += f" | Record: {self.current_record:.1f}s"
+        
+        time_surface = self.font.render(time_text, True, (255, 255, 255))
+        self.screen.blit(time_surface, (10, 10))
 
     def draw_boss_hp(self):
         if not self.boss_level or not hasattr(self, 'eye_boss') or self.eye_boss.is_dead:
@@ -274,10 +313,12 @@ class Game:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE and (self.menu.state == "game" or self.boss_level):
+                        self.pause_start_time = time.time()  
                         self.menu.state = "pause"
+
                     elif event.key == pygame.K_ESCAPE and self.menu.state == "pause":
-                        if not self.menu.state in ["waiting_for_start", "waiting_for_boss", "game_over"]:  
-                            self.menu.state = "game"
+                        self.total_pause_time += time.time() - self.pause_start_time
+                        self.menu.state = "game"
                             
             self.clock.tick(self.fps)
             self.screen.fill((0, 0, 0)) 
@@ -290,4 +331,3 @@ class Game:
 
             self.draw_boss_hp()
             pygame.display.flip()
-
