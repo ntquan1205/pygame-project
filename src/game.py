@@ -21,7 +21,7 @@ class Game:
         self.font = pygame.font.Font('freesansbold.ttf', 18)
         self.big_font = pygame.font.Font('freesansbold.ttf', 30)
 
-        pygame.mixer.music.load('assets/Menu/MenuTrack.ogg')
+        pygame.mixer.music.load('assets/Music/level_music.mp3')
         pygame.mixer.music.set_volume(0.5)
         
         self.boss_music = pygame.mixer.Sound('assets/Music/08 Red Sun (Maniac Agenda Mix).mp3')  
